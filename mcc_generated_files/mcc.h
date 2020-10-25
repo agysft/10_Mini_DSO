@@ -51,6 +51,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "spi1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
 

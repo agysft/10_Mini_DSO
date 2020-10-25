@@ -51,6 +51,10 @@
 #define LED1 PORTEbits.RE0
 #define LEDRotaryEncoderOrange PORTGbits.RG3
 #define LEDRotaryEncoderBlue PORTGbits.RG2
+#define SW1 PORTEbits.RE7
+#define SW2 PORTEbits.RE6
+#define SW3 PORTEbits.RE5
+#define SW4 PORTEbits.RE1
 /*
                          Main application
  */
@@ -65,9 +69,14 @@ int main(void)
     while (1)
     {
         // Add your application code
-        LEDRotaryEncoderBlue = 0; LED1 = 1; __delay_ms(1000);
-        LED1 = 0; Nop(); LEDRotaryEncoderOrange = 1; __delay_ms(1000);
-        LEDRotaryEncoderOrange = 0; Nop(); LEDRotaryEncoderBlue = 1 ; __delay_ms(1000);
+        if (SW1 == 0) LED1 = 1;
+        if (SW2 == 0) LEDRotaryEncoderOrange = 1;
+        if (SW3 == 0) LEDRotaryEncoderBlue = 1;
+        if (SW4 == 0) {
+            LED1 = 0; Nop();
+            LEDRotaryEncoderBlue = 0 ; Nop();
+            LEDRotaryEncoderOrange = 0; Nop();
+        }
     }
 
     return 1;

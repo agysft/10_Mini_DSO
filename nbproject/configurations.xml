@@ -13,6 +13,7 @@
         <itemPath>mcc_generated_files/traps.h</itemPath>
         <itemPath>mcc_generated_files/pin_manager.h</itemPath>
         <itemPath>mcc_generated_files/mcc.h</itemPath>
+        <itemPath>mcc_generated_files/spi1.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
@@ -31,6 +32,7 @@
         <itemPath>mcc_generated_files/traps.c</itemPath>
         <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
         <itemPath>mcc_generated_files/system.c</itemPath>
+        <itemPath>mcc_generated_files/spi1.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
     </logicalFolder>
@@ -55,7 +57,7 @@
         <platform>4</platform>
       </toolsSet>
       <packs>
-        <pack name="PIC24F-GC_DFP" vendor="Microchip" version="1.0.8"/>
+        <pack name="PIC24F-GC_DFP" vendor="Microchip" version="1.2.36"/>
       </packs>
       <compileType>
         <linkerTool>
@@ -143,6 +145,9 @@
         <property key="relax" value="false"/>
         <property key="warning-level" value="emit-warnings"/>
       </C30-AS>
+      <C30-CO>
+        <property key="coverage-enable" value=""/>
+      </C30-CO>
       <C30-LD>
         <property key="additional-options-use-response-files" value="false"/>
         <property key="boot-eeprom" value="no_eeprom"/>
@@ -197,6 +202,7 @@
         <property key="legacy-libc" value="true"/>
         <property key="mpreserve-all" value="false"/>
         <property key="oXC16glb-macros" value=""/>
+        <property key="omit-pack-options" value="1"/>
         <property key="output-file-format" value="elf"/>
         <property key="preserve-all" value="false"/>
         <property key="preserve-file" value=""/>
@@ -260,7 +266,6 @@
         <property key="UART 4" value="true"/>
         <property key="UCNFG1" value="true"/>
         <property key="debugoptions.useswbreakpoints" value="false"/>
-        <property key="firmware.download.all" value="false"/>
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="true"/>

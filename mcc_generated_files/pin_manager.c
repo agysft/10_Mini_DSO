@@ -63,7 +63,7 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     LATB = 0x0000;
     LATC = 0x0000;
-    LATD = 0x0000;
+    LATD = 0x0006;
     LATE = 0x0000;
     LATF = 0x0000;
     LATG = 0x0000;
@@ -73,7 +73,7 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     TRISB = 0xF0FF;
     TRISC = 0x1000;
-    TRISD = 0x0FFF;
+    TRISD = 0x0FF9;
     TRISE = 0x00FE;
     TRISF = 0x00BB;
     TRISG = 0x03C0;
@@ -90,8 +90,8 @@ void PIN_MANAGER_Initialize (void)
     CNPU1 = 0x0000;
     CNPU2 = 0x0000;
     CNPU3 = 0x0000;
-    CNPU4 = 0x0000;
-    CNPU5 = 0x0000;
+    CNPU4 = 0x8800;
+    CNPU5 = 0x0003;
     CNPU6 = 0x0000;
 
     /****************************************************************************
@@ -107,13 +107,24 @@ void PIN_MANAGER_Initialize (void)
     /****************************************************************************
      * Setting the Analog/Digital Configuration SFR(s)
      ***************************************************************************/
-    ANSB = 0xF03F;
-    ANSD = 0xFFFF;
-    ANSE = 0x00F0;
+    ANSB = 0xF01F;
+    ANSD = 0xFFF9;
+    ANSE = 0x0010;
     ANSF = 0x00B9;
     ANSG = 0x03C0;
     
     //Setting UTRDIS bit to use RG2 and RG3 as GPIO 
     U1CNFG2bits.UTRDIS = 1;
+    
+    /****************************************************************************
+     * Set the PPS
+     ***************************************************************************/
+    __builtin_write_OSCCONL(OSCCON & 0xbf); // unlock PPS
+
+    RPOR12bits.RP24R = 0x0008;    //RD1->SPI1:SCK1OUT
+    RPINR20bits.SDI1R = 0x0012;    //RB5->SPI1:SDI1
+    RPOR11bits.RP23R = 0x0007;    //RD2->SPI1:SDO1
+
+    __builtin_write_OSCCONL(OSCCON | 0x40); // lock PPS
 }
 

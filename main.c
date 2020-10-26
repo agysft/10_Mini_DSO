@@ -50,35 +50,55 @@
 #include <libpic30.h>
 #include "font16.h"
 #include "mcc_generated_files/spi1.h"
+#include "mcc_generated_files/tmr5.h"
+#include <stdio.h>
 
+/* LEDs and Switches */
 #define LED1 PORTEbits.RE0
 #define LEDRotaryEncoderOrange PORTGbits.RG3
 #define LEDRotaryEncoderBlue PORTGbits.RG2
+#define SWRotaryEncoder PORTDbits.RD7
 #define SW1 PORTEbits.RE7
 #define SW2 PORTEbits.RE6
 #define SW3 PORTEbits.RE5
 #define SW4 PORTEbits.RE1
-#define GLCDReset PORTDbits.RD5
-#define GLCDCS PORTDbits.RD3
-#define GLCDDC PORTDbits.RD4
-#define GLCDBL PORTDbits.RD6
+/* SPI LCD */
+#define GLCDReset   PORTDbits.RD5
+#define GLCDCS      PORTDbits.RD3
+#define GLCDDC      PORTDbits.RD4
+#define GLCDBL      PORTDbits.RD6
+#define LCD_WIDTH   320 //LCD width
+#define LCD_HEIGHT  240 //LCD height
+#define LCD_2_4inch //2.4inch LCD, No define=2inch LCD
+/* color */
+#define ColorBlack      0x0000
+#define ColorBlue       0x001f
+#define ColorGreen      0x07e0
+#define ColorRed        0xf800
+#define ColorCyan       0x07ff
+#define ColorMagenta    0xf81f
+#define ColorYellow     0xffe0
+#define ColorWhite      0xffff
+
+// rotaly encoder
+int pressedTime = 0; int rotData, rotDir, swPos; float rotVal; float rotValMag = 0.5;
 
 void GLCD_COM(uint8_t acommand){
-    GLCDDC = 0;  //command
+    GLCDDC = 0;     //0:command
     while( SPI1STATbits.SPITBF == true ){}
     SPI1BUF = acommand;
     while ( SPI1STATbits.SRXMPT == true);
     acommand = SPI1BUF;
 }
 void GLCD_DAT(uint8_t acommand){
-    GLCDDC = 1;  //data
+    GLCDDC = 1;     //1:data
     while( SPI1STATbits.SPITBF == true ){}
     SPI1BUF = acommand;
     while ( SPI1STATbits.SRXMPT == true);
     acommand = SPI1BUF;
 }
 void GLCD_DAT16(uint16_t acommand){
-    GLCDDC = 1;  //data
+    GLCDDC = 1;     //1:data
     uint8_t tmpcommand;
     while( SPI1STATbits.SPITBF == true ){}
     SPI1BUF = (acommand>>8) & 0xff;
@@ -103,98 +123,9 @@ void GLCD_Init(){
     __delay_ms(200);
     GLCDReset = 1;
     __delay_ms(200);
-    GLCDCS = 0;  //CS=enable
+    GLCDCS = 0;     //CS=enable
 
-    /* for 2inch */
-//	GLCD_COM(0x36);
-//	GLCD_DAT(0xA0);
-//
-//	GLCD_COM(0x3A); 
-//	GLCD_DAT(0x05);
-//
-//	GLCD_COM(0x21); 
-//
-//	GLCD_COM(0x2A);
-//	GLCD_DAT(0x00);
-//	GLCD_DAT(0x01);
-//	GLCD_DAT(0x00);
-//	GLCD_DAT(0x3F);
-//
-//	GLCD_COM(0x2B);
-//	GLCD_DAT(0x00);
-//	GLCD_DAT(0x00);
-//	GLCD_DAT(0x00);
-//	GLCD_DAT(0xEF);
-//
-//	GLCD_COM(0xB2);
-//	GLCD_DAT(0x0C);
-//	GLCD_DAT(0x0C);
-//	GLCD_DAT(0x00);
-//	GLCD_DAT(0x33);
-//	GLCD_DAT(0x33);
-//
-//	GLCD_COM(0xB7);
-//	GLCD_DAT(0x35); 
-//
-//	GLCD_COM(0xBB);
-//	GLCD_DAT(0x1F);
-//
-//	GLCD_COM(0xC0);
-//	GLCD_DAT(0x2C);
-//
-//	GLCD_COM(0xC2);
-//	GLCD_DAT(0x01);
-//
-//	GLCD_COM(0xC3);
-//	GLCD_DAT(0x12);   
-//
-//	GLCD_COM(0xC4);
-//	GLCD_DAT(0x20);
-//
-//	GLCD_COM(0xC6);
-//	GLCD_DAT(0x0F); 
-//
-//	GLCD_COM(0xD0);
-//	GLCD_DAT(0xA4);
-//	GLCD_DAT(0xA1);
-//
-//	GLCD_COM(0xE0);
-//	GLCD_DAT(0xD0);
-//	GLCD_DAT(0x08);
-//	GLCD_DAT(0x11);
-//	GLCD_DAT(0x08);
-//	GLCD_DAT(0x0C);
-//	GLCD_DAT(0x15);
-//	GLCD_DAT(0x39);
-//	GLCD_DAT(0x33);
-//	GLCD_DAT(0x50);
-//	GLCD_DAT(0x36);
-//	GLCD_DAT(0x13);
-//	GLCD_DAT(0x14);
-//	GLCD_DAT(0x29);
-//	GLCD_DAT(0x2D);
-//
-//	GLCD_COM(0xE1);
-//	GLCD_DAT(0xD0);
-//	GLCD_DAT(0x08);
-//	GLCD_DAT(0x10);
-//	GLCD_DAT(0x08);
-//	GLCD_DAT(0x06);
-//	GLCD_DAT(0x06);
-//	GLCD_DAT(0x39);
-//	GLCD_DAT(0x44);
-//	GLCD_DAT(0x51);
-//	GLCD_DAT(0x0B);
-//	GLCD_DAT(0x16);
-//	GLCD_DAT(0x14);
-//	GLCD_DAT(0x2F);
-//	GLCD_DAT(0x31);
-//	GLCD_COM(0x21);
-//
-//	GLCD_COM(0x11);
-//
-//	GLCD_COM(0x29);
-
+#ifdef LCD_2_4inch
     /* for 2.4inch */
 	GLCD_COM(0x11); //Sleep out
 	
@@ -284,7 +215,97 @@ void GLCD_Init(){
 	GLCD_DAT(0x38);
 	GLCD_DAT(0x0F);
 	GLCD_COM(0x29); //Display on
+#else
+    /* for 2inch */
+	GLCD_COM(0x36);
+	GLCD_DAT(0xA0);
 
+	GLCD_COM(0x3A); 
+	GLCD_DAT(0x05);
+
+	GLCD_COM(0x21); 
+
+	GLCD_COM(0x2A);
+	GLCD_DAT(0x00);
+	GLCD_DAT(0x01);
+	GLCD_DAT(0x00);
+	GLCD_DAT(0x3F);
+
+	GLCD_COM(0x2B);
+	GLCD_DAT(0x00);
+	GLCD_DAT(0x00);
+	GLCD_DAT(0x00);
+	GLCD_DAT(0xEF);
+
+	GLCD_COM(0xB2);
+	GLCD_DAT(0x0C);
+	GLCD_DAT(0x0C);
+	GLCD_DAT(0x00);
+	GLCD_DAT(0x33);
+	GLCD_DAT(0x33);
+
+	GLCD_COM(0xB7);
+	GLCD_DAT(0x35); 
+
+	GLCD_COM(0xBB);
+	GLCD_DAT(0x1F);
+
+	GLCD_COM(0xC0);
+	GLCD_DAT(0x2C);
+
+	GLCD_COM(0xC2);
+	GLCD_DAT(0x01);
+
+	GLCD_COM(0xC3);
+	GLCD_DAT(0x12);   
+
+	GLCD_COM(0xC4);
+	GLCD_DAT(0x20);
+
+	GLCD_COM(0xC6);
+	GLCD_DAT(0x0F); 
+
+	GLCD_COM(0xD0);
+	GLCD_DAT(0xA4);
+	GLCD_DAT(0xA1);
+
+	GLCD_COM(0xE0);
+	GLCD_DAT(0xD0);
+	GLCD_DAT(0x08);
+	GLCD_DAT(0x11);
+	GLCD_DAT(0x08);
+	GLCD_DAT(0x0C);
+	GLCD_DAT(0x15);
+	GLCD_DAT(0x39);
+	GLCD_DAT(0x33);
+	GLCD_DAT(0x50);
+	GLCD_DAT(0x36);
+	GLCD_DAT(0x13);
+	GLCD_DAT(0x14);
+	GLCD_DAT(0x29);
+	GLCD_DAT(0x2D);
+
+	GLCD_COM(0xE1);
+	GLCD_DAT(0xD0);
+	GLCD_DAT(0x08);
+	GLCD_DAT(0x10);
+	GLCD_DAT(0x08);
+	GLCD_DAT(0x06);
+	GLCD_DAT(0x06);
+	GLCD_DAT(0x39);
+	GLCD_DAT(0x44);
+	GLCD_DAT(0x51);
+	GLCD_DAT(0x0B);
+	GLCD_DAT(0x16);
+	GLCD_DAT(0x14);
+	GLCD_DAT(0x2F);
+	GLCD_DAT(0x31);
+	GLCD_COM(0x21);
+
+	GLCD_COM(0x11);
+
+	GLCD_COM(0x29);
+#endif
     GLCDBL = 1;  //BL On
 }
 void GLCD_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend){ 
@@ -309,8 +330,6 @@ void GLCD_SetCursor(uint16_t X, uint16_t Y){
     GLCD_DAT16(Y);
 	GLCD_COM(0x2C);
 }
-#define LCD_WIDTH   320 //LCD width
-#define LCD_HEIGHT  240 //LCD height
 void GLCD_Clear(uint16_t Color){
 	unsigned int i,j;  	
 	GLCD_SetWindow(0, 0, LCD_WIDTH, LCD_HEIGHT);
@@ -348,7 +367,6 @@ void GLCD_LineHL(uint16_t xH, uint16_t xL, uint16_t t, uint16_t color){
         xH = xL;
         xL = xT;
     }
-    //if ( (xH == 0) & (xL == 0) ) xH = 1;
     if ((xH | xL) == 0) xH = 1;
     for ( i= LCD_HEIGHT-xH; i <= LCD_HEIGHT-xL; i++){
         GLCD_SetCursor(t, i);
@@ -379,23 +397,64 @@ void GLCD_DrawString(uint16_t Xpoint, uint16_t Ypoint, const char * pString, uin
         Xpoint += 11;
     }
 }
+void TMR5_int(){
+    // Interrupt occurs every 20ms; 
+    //  for detection of the rotary encoder and
+    //  for detection of the pressed time of the SW
+    if ( SWRotaryEncoder == 0 ) pressedTime++;
+    rotData = ((rotData & 0x3) << 2) | (PORTF & 0x3);
+    switch(rotData){
+        case 0b0010 :
+        case 0b1011 :
+        case 0b1101 :
+        case 0b0100 : 
+            rotVal-= rotValMag;
+            rotDir = -1;
+            return;
+
+        case 0b0001 :
+        case 0b0111 :
+        case 0b1110 :
+        case 0b1000 : 
+            rotVal+= rotValMag;
+            rotDir = 1;
+            return;
+
+        default: 
+            rotDir = 0;
+            return;
+    }
+}
 /*
                          Main application
  */
 int main(void)
 {
     // initialize the device
-    SYSTEM_Initialize();
-    // initialize the device
+    uint16_t x, y;
+    int i;
+    char pString[32]="Hello World !";// font16.h 29char/line
+
+    uint16_t prev_x, prev_y;
+    int prev_pressedTime;
+    
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
     DSCON = 0x0000; // must be write same command twice
+    SYSTEM_Initialize();
+    TMR5_SetInterruptHandler(TMR5_int);
     GLCD_Init();
     GLCD_Clear(0);
     GLCD_DrawString(20,20,"Hello World !",0xffff);
     
+    x=160; y=120;
+    prev_x = x; prev_y = y;
+    rotValMag = 1;
+    rotVal = (float) x;
+    
     while (1)
     {
         // Add your application code
+        // SWitch TEST
         if (SW1 == 0) LED1 = 1;
         if (SW2 == 0) LEDRotaryEncoderOrange = 1;
         if (SW3 == 0) LEDRotaryEncoderBlue = 1;
@@ -404,6 +463,30 @@ int main(void)
             LEDRotaryEncoderBlue = 0 ; Nop();
             LEDRotaryEncoderOrange = 0; Nop();
         }
+        // ROTARY ENCODER TEST
+        x = (uint16_t) rotVal;
+        if (prev_x != x){
+            if (x >= LCD_WIDTH-9) x = LCD_WIDTH-9;
+            if (x == 0) x=0;
+            for (i=0;i<8;i++){
+                GLCD_LineHrz( prev_x, prev_y+i, 8, ColorBlack);
+                GLCD_LineHrz( x, y+i, 8, ColorYellow);
+            }
+            sprintf(pString,"%8d", (uint16_t) prev_x);
+            GLCD_DrawString(20, 40, pString, ColorBlack);
+            prev_x = x; prev_y = y;
+            sprintf(pString,"%8d", (uint16_t) x);
+            GLCD_DrawString(20, 40, pString, ColorCyan);
+        }
+
+        if (prev_pressedTime != pressedTime){        
+            sprintf(pString,"%8d", prev_pressedTime);
+            GLCD_DrawString(20, 60, pString, ColorBlack);
+            prev_pressedTime = pressedTime;
+            sprintf(pString,"%8d", pressedTime);
+            GLCD_DrawString(20, 60, pString, ColorRed);
+        }
+        __delay_ms(50);
     }
 
     return 1;

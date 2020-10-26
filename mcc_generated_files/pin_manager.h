@@ -1078,6 +1078,152 @@
 #define IO_RD6_SetDigitalOutput() (_TRISD6 = 0)
 /**
   @Summary
+    Sets the GPIO pin, RD7, high using LATD7.
+
+  @Description
+    Sets the GPIO pin, RD7, high using LATD7.
+
+  @Preconditions
+    The RD7 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RD7 high (1)
+    IO_RD7_SetHigh();
+    </code>
+
+*/
+#define IO_RD7_SetHigh()          (_LATD7 = 1)
+/**
+  @Summary
+    Sets the GPIO pin, RD7, low using LATD7.
+
+  @Description
+    Sets the GPIO pin, RD7, low using LATD7.
+
+  @Preconditions
+    The RD7 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RD7 low (0)
+    IO_RD7_SetLow();
+    </code>
+
+*/
+#define IO_RD7_SetLow()           (_LATD7 = 0)
+/**
+  @Summary
+    Toggles the GPIO pin, RD7, using LATD7.
+
+  @Description
+    Toggles the GPIO pin, RD7, using LATD7.
+
+  @Preconditions
+    The RD7 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RD7
+    IO_RD7_Toggle();
+    </code>
+
+*/
+#define IO_RD7_Toggle()           (_LATD7 ^= 1)
+/**
+  @Summary
+    Reads the value of the GPIO pin, RD7.
+
+  @Description
+    Reads the value of the GPIO pin, RD7.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RD7
+    postValue = IO_RD7_GetValue();
+    </code>
+
+*/
+#define IO_RD7_GetValue()         _RD7
+/**
+  @Summary
+    Configures the GPIO pin, RD7, as an input.
+
+  @Description
+    Configures the GPIO pin, RD7, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RD7 as an input
+    IO_RD7_SetDigitalInput();
+    </code>
+
+*/
+#define IO_RD7_SetDigitalInput()  (_TRISD7 = 1)
+/**
+  @Summary
+    Configures the GPIO pin, RD7, as an output.
+
+  @Description
+    Configures the GPIO pin, RD7, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RD7 as an output
+    IO_RD7_SetDigitalOutput();
+    </code>
+
+*/
+#define IO_RD7_SetDigitalOutput() (_TRISD7 = 0)
+/**
+  @Summary
     Sets the GPIO pin, RE0, high using LATE0.
 
   @Description
@@ -1806,6 +1952,298 @@
 
 */
 #define IO_RE7_SetDigitalOutput() (_TRISE7 = 0)
+/**
+  @Summary
+    Sets the GPIO pin, RF0, high using LATF0.
+
+  @Description
+    Sets the GPIO pin, RF0, high using LATF0.
+
+  @Preconditions
+    The RF0 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF0 high (1)
+    IO_RF0_SetHigh();
+    </code>
+
+*/
+#define IO_RF0_SetHigh()          (_LATF0 = 1)
+/**
+  @Summary
+    Sets the GPIO pin, RF0, low using LATF0.
+
+  @Description
+    Sets the GPIO pin, RF0, low using LATF0.
+
+  @Preconditions
+    The RF0 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF0 low (0)
+    IO_RF0_SetLow();
+    </code>
+
+*/
+#define IO_RF0_SetLow()           (_LATF0 = 0)
+/**
+  @Summary
+    Toggles the GPIO pin, RF0, using LATF0.
+
+  @Description
+    Toggles the GPIO pin, RF0, using LATF0.
+
+  @Preconditions
+    The RF0 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RF0
+    IO_RF0_Toggle();
+    </code>
+
+*/
+#define IO_RF0_Toggle()           (_LATF0 ^= 1)
+/**
+  @Summary
+    Reads the value of the GPIO pin, RF0.
+
+  @Description
+    Reads the value of the GPIO pin, RF0.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RF0
+    postValue = IO_RF0_GetValue();
+    </code>
+
+*/
+#define IO_RF0_GetValue()         _RF0
+/**
+  @Summary
+    Configures the GPIO pin, RF0, as an input.
+
+  @Description
+    Configures the GPIO pin, RF0, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF0 as an input
+    IO_RF0_SetDigitalInput();
+    </code>
+
+*/
+#define IO_RF0_SetDigitalInput()  (_TRISF0 = 1)
+/**
+  @Summary
+    Configures the GPIO pin, RF0, as an output.
+
+  @Description
+    Configures the GPIO pin, RF0, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF0 as an output
+    IO_RF0_SetDigitalOutput();
+    </code>
+
+*/
+#define IO_RF0_SetDigitalOutput() (_TRISF0 = 0)
+/**
+  @Summary
+    Sets the GPIO pin, RF1, high using LATF1.
+
+  @Description
+    Sets the GPIO pin, RF1, high using LATF1.
+
+  @Preconditions
+    The RF1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF1 high (1)
+    IO_RF1_SetHigh();
+    </code>
+
+*/
+#define IO_RF1_SetHigh()          (_LATF1 = 1)
+/**
+  @Summary
+    Sets the GPIO pin, RF1, low using LATF1.
+
+  @Description
+    Sets the GPIO pin, RF1, low using LATF1.
+
+  @Preconditions
+    The RF1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF1 low (0)
+    IO_RF1_SetLow();
+    </code>
+
+*/
+#define IO_RF1_SetLow()           (_LATF1 = 0)
+/**
+  @Summary
+    Toggles the GPIO pin, RF1, using LATF1.
+
+  @Description
+    Toggles the GPIO pin, RF1, using LATF1.
+
+  @Preconditions
+    The RF1 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RF1
+    IO_RF1_Toggle();
+    </code>
+
+*/
+#define IO_RF1_Toggle()           (_LATF1 ^= 1)
+/**
+  @Summary
+    Reads the value of the GPIO pin, RF1.
+
+  @Description
+    Reads the value of the GPIO pin, RF1.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RF1
+    postValue = IO_RF1_GetValue();
+    </code>
+
+*/
+#define IO_RF1_GetValue()         _RF1
+/**
+  @Summary
+    Configures the GPIO pin, RF1, as an input.
+
+  @Description
+    Configures the GPIO pin, RF1, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF1 as an input
+    IO_RF1_SetDigitalInput();
+    </code>
+
+*/
+#define IO_RF1_SetDigitalInput()  (_TRISF1 = 1)
+/**
+  @Summary
+    Configures the GPIO pin, RF1, as an output.
+
+  @Description
+    Configures the GPIO pin, RF1, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF1 as an output
+    IO_RF1_SetDigitalOutput();
+    </code>
+
+*/
+#define IO_RF1_SetDigitalOutput() (_TRISF1 = 0)
 /**
   @Summary
     Sets the GPIO pin, RG2, high using LATG2.

@@ -89,6 +89,7 @@
 #include "pin_manager.h"
 #include "clock.h"
 #include "system.h"
+#include "tmr5.h"
 #include "spi1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
@@ -99,6 +100,7 @@ void SYSTEM_Initialize(void)
     CLOCK_Initialize();
     INTERRUPT_Initialize();
     SPI1_Initialize();
+    TMR5_Initialize();
 }
 
 /**

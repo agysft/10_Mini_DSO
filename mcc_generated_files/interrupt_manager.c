@@ -52,5 +52,8 @@
 */
 void INTERRUPT_Initialize (void)
 {
+    //    TI: T5 - Timer5
+    //    Priority: 1
+        IPC7bits.T5IP = 1;
 
 }

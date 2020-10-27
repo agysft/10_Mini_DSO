@@ -434,9 +434,6 @@ int main(void)
     uint16_t x, y;
     int i;
     char pString[32]="Hello World !";// font16.h 29char/line
-
-    uint16_t prev_x, prev_y;
-    int prev_pressedTime;
     
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
     DSCON = 0x0000; // must be write same command twice
@@ -444,49 +441,30 @@ int main(void)
     TMR5_SetInterruptHandler(TMR5_int);
     GLCD_Init();
     GLCD_Clear(0);
-    GLCD_DrawString(20,20,"Hello World !",0xffff);
+    GLCD_DrawString(0,20,"1.2V is output to C26/C27",0xffff);
+
+    /* set OP AMP 1 */
+    ANSGbits.ANSELG6 = 1;   TRISGbits.TRISG6 = 1;    //RG9(8 pin) = Analog (Input)
+    ANSBbits.ANSELB5 = 1;   TRISBbits.TRISB5 = 1;    //RB5(11 pin) = Analog (Output)
+    AMP1CON = 0;
+    AMP1CONbits.AMPEN = 1;  AMP1CONbits.AMPOE = 1;
+    AMP1CONbits.SPDSEL = 1;     // High Power
+    AMP1CONbits.NINSEL = 0b110; // 0b110 = voltage follower
+    AMP1CONbits.PINSEL = 0b010; // 0b010 = OAxP1
     
-    x=160; y=120;
-    prev_x = x; prev_y = y;
-    rotValMag = 1;
-    rotVal = (float) x;
-    
+    /* set OP AMP 2 */
+    ANSBbits.ANSELB1 = 1;   TRISBbits.TRISB1 = 1;    //RB1(15 pin) = Analog (Input)
+    ANSBbits.ANSELB3 = 1;   TRISBbits.TRISB3 = 1;    //RB5(13 pin) = Analog (Output)
+    AMP2CON = 0;
+    AMP2CONbits.AMPEN = 1;  AMP2CONbits.AMPOE = 1;
+    AMP2CONbits.SPDSEL = 1;     // High Power
+    AMP2CONbits.NINSEL = 0b110; // 0b110 = voltage follower
+    AMP2CONbits.PINSEL = 0b010; // 0b010 = OAxP1
+
     while (1)
     {
         // Add your application code
-        // SWitch TEST
-        if (SW1 == 0) LED1 = 1;
-        if (SW2 == 0) LEDRotaryEncoderOrange = 1;
-        if (SW3 == 0) LEDRotaryEncoderBlue = 1;
-        if (SW4 == 0) {
-            LED1 = 0; Nop();
-            LEDRotaryEncoderBlue = 0 ; Nop();
-            LEDRotaryEncoderOrange = 0; Nop();
-        }
-        // ROTARY ENCODER TEST
-        x = (uint16_t) rotVal;
-        if (prev_x != x){
-            if (x >= LCD_WIDTH-9) x = LCD_WIDTH-9;
-            if (x == 0) x=0;
-            for (i=0;i<8;i++){
-                GLCD_LineHrz( prev_x, prev_y+i, 8, ColorBlack);
-                GLCD_LineHrz( x, y+i, 8, ColorYellow);
-            }
-            sprintf(pString,"%8d", (uint16_t) prev_x);
-            GLCD_DrawString(20, 40, pString, ColorBlack);
-            prev_x = x; prev_y = y;
-            sprintf(pString,"%8d", (uint16_t) x);
-            GLCD_DrawString(20, 40, pString, ColorCyan);
-        }
 
-        if (prev_pressedTime != pressedTime){        
-            sprintf(pString,"%8d", prev_pressedTime);
-            GLCD_DrawString(20, 60, pString, ColorBlack);
-            prev_pressedTime = pressedTime;
-            sprintf(pString,"%8d", pressedTime);
-            GLCD_DrawString(20, 60, pString, ColorRed);
-        }
-        __delay_ms(50);
     }
 
     return 1;

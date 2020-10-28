@@ -63,13 +63,13 @@
 #define SW3 PORTEbits.RE5
 #define SW4 PORTEbits.RE1
 /* SPI LCD */
+#define LCD_2_4inch   //2.4inch LCD, No define = 2inch LCD
 #define GLCDReset   PORTDbits.RD5
 #define GLCDCS      PORTDbits.RD3
 #define GLCDDC      PORTDbits.RD4
 #define GLCDBL      PORTDbits.RD6
 #define LCD_WIDTH   320 //LCD width
 #define LCD_HEIGHT  240 //LCD height
-#define LCD_2_4inch //2.4inch LCD, No define=2inch LCD
 /* color */
 #define ColorBlack      0x0000
 #define ColorBlue       0x001f
@@ -79,8 +79,11 @@
 #define ColorMagenta    0xf81f
 #define ColorYellow     0xffe0
 #define ColorWhite      0xffff
+/* Attenuator ON-OFF */
+#define CH1ATT  PORTGbits.RG7   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
+#define CH2ATT  PORTGbits.RG8   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
 
-// rotaly encoder
+// Rotary Encoder
 int pressedTime = 0; int rotData, rotDir, swPos; float rotVal; float rotValMag = 0.5;
 
 void GLCD_COM(uint8_t acommand){
@@ -360,6 +363,7 @@ void GLCD_LineVrt(uint16_t x, uint16_t y, uint16_t l, uint16_t color){
     }
 }
 void GLCD_LineHL(uint16_t xH, uint16_t xL, uint16_t t, uint16_t color){
+    /* Draw a vertical line from XL to XH */
     uint16_t i;
     uint16_t xT;
     if (xH < xL){
@@ -430,18 +434,16 @@ void TMR5_int(){
  */
 int main(void)
 {
-    // initialize the device
-    uint16_t x, y;
     int i;
     char pString[32]="Hello World !";// font16.h 29char/line
     
+    // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
     DSCON = 0x0000; // must be write same command twice
     SYSTEM_Initialize();
     TMR5_SetInterruptHandler(TMR5_int);
     GLCD_Init();
     GLCD_Clear(0);
-    GLCD_DrawString(0,20,"1.2V is output to C26/C27",0xffff);
 
     /* set OP AMP 1 */
     ANSGbits.ANSELG6 = 1;   TRISGbits.TRISG6 = 1;    //RG9(8 pin) = Analog (Input)
@@ -461,6 +463,13 @@ int main(void)
     AMP2CONbits.NINSEL = 0b110; // 0b110 = voltage follower
     AMP2CONbits.PINSEL = 0b010; // 0b010 = OAxP1
 
+    GLCD_DrawString(0,0,"1.2V is output to C26/C27",0xffff);
+
+    /* Select ATT 0/1 = 15V/1.25V */
+    CH1ATT = 1; Nop();
+    CH2ATT = 1;
+    GLCD_DrawString(0,20,"U3 Pin 9 and 11 will be High",0xffff);
+    
     while (1)
     {
         // Add your application code

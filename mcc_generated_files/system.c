@@ -90,9 +90,11 @@
 #include "clock.h"
 #include "system.h"
 #include "tmr5.h"
+#include "tmr2.h"
+#include "padc1.h"
+#include "spi1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
-#include "spi1.h"
 
 void SYSTEM_Initialize(void)
 {
@@ -100,7 +102,9 @@ void SYSTEM_Initialize(void)
     CLOCK_Initialize();
     INTERRUPT_Initialize();
     SPI1_Initialize();
+    PADC1_Initialize();
     TMR5_Initialize();
+    TMR2_Initialize();
 }
 
 /**

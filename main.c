@@ -436,6 +436,12 @@ int main(void)
 {
     int i;
     char pString[32]="Hello World !";// font16.h 29char/line
+    static int originalWavedata[2][LCD_WIDTH*3];
+    uint8_t byteWavedata[2][LCD_WIDTH];
+    uint8_t prev_byteWavedata[2][LCD_WIDTH];
+    uint16_t prev_gx, gx, prev_prev_gx;
+    uint16_t prev_gx2, gx2, prev_prev_gx2;
+    int tempdata;
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
@@ -463,17 +469,106 @@ int main(void)
     AMP2CONbits.NINSEL = 0b110; // 0b110 = voltage follower
     AMP2CONbits.PINSEL = 0b010; // 0b010 = OAxP1
 
-    GLCD_DrawString(0,0,"1.2V is output to C26/C27",0xffff);
+        /*** DMA Setting ****/
+    DMACON = 0;
+	DMACONbits.DMAEN = 1;               // DMA Enable
+	DMACONbits.PRSSEL = 1;              // 0: Fixed Priority, 1: Round-robin
+	DMAH = 8192;                        // Upper Limit 8k byte
+	DMAL = 0x0800;                      // Lower Limit Excluding SFR Space
+    
+    // DMA CH0 Setting
+	DMACH0 = 0;                         // Stop Channel
+	DMACH0bits.RELOAD = 1;              // Reload DMASRC, DMADST, DMACNT
+	DMACH0bits.TRMODE = 0b00;           // Oneshot    
+	DMACH0bits.SAMODE = 0b00;              // Source Addrs 0b11:PIA mode --0b00:No Increment--
+	DMACH0bits.DAMODE = 1;              // Dist Addrs Increment
+	DMACH0bits.SIZE = 0;                // Word Mode(16bit)
+	DMASRC0 = (unsigned int)&ADRES0;                                                                                                                                                                         ;    // From ADC Buf0 select
+	DMADST0 = (unsigned int)originalWavedata[0];  // To Buffer select
+	DMACNT0 = LCD_WIDTH*3;                      // DMA Counter
+	DMAINT0 = 0;                        // All Clear
+	DMAINT0bits.CHSEL = 0x2F;           // Select Pipeline ADC
+	DMACH0bits.CHEN = 0;                // Channel DisableEnable
+	IFS0bits.DMA0IF = 0;                // Flag Reset
+
+    // DMA CH1 Setting
+	DMACH1 = 0;                         // Stop Channel
+	DMACH1bits.RELOAD = 1;              // Reload DMASRC, DMADST, DMACNT
+	DMACH1bits.TRMODE = 0b00;           // Oneshot    
+	DMACH1bits.SAMODE = 0b00;              // Source Addrs 0b11:PIA mode --0b00:No Increment--
+	DMACH1bits.DAMODE = 1;              // Dist Addrs Increment
+	DMACH1bits.SIZE = 0;                // Word Mode(16bit)
+	DMASRC1 = (unsigned int)&ADRES1;                                                                                                                                                                         ;    // From ADC Buf0 select
+	DMADST1 = (unsigned int)originalWavedata[1];  // To Buffer select
+	DMACNT1 = LCD_WIDTH*3;                      // DMA Counter
+	DMAINT1 = 0;                        // All Clear
+	DMAINT1bits.CHSEL = 0x2F;           // Select Pipeline ADC
+	DMACH1bits.CHEN = 0;                // Channel DisableEnable
+	IFS0bits.DMA1IF = 0;                // Flag Reset
+
+    T2CONbits.TON = 0;                  // stop Timer2
 
     /* Select ATT 0/1 = 15V/1.25V */
     CH1ATT = 1; Nop();
     CH2ATT = 1;
-    GLCD_DrawString(0,20,"U3 Pin 9 and 11 will be High",0xffff);
+    GLCD_DrawString(0,0,"2CH DSO, CH0=Cyan, CH1=Yellow",0xffff);
     
     while (1)
     {
         // Add your application code
+        IEC1bits.T5IE = false;  // disable TMR5 interrupt; stop detection of the rotary encoder
+        ADCON1bits.ADON = 1;    // ADC Enable
+        TMR2 = 0;               // reset Timer2
+        ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
+        T2CONbits.TON = 1;		// start Timer2 = start ADC
+        IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
+        IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
+        DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
+        DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
+        while( ( !IFS0bits.DMA0IF ) | ( !IFS0bits.DMA1IF ) );	// Wait Max_Size sampling
+        IFS0bits.DMA0IF = 0;	// Clear DMA0 Interrupt Flag
+        IFS0bits.DMA1IF = 0;	// Clear DMA1 Interrupt Flag
+        DMACH0bits.CHEN = 0;    // DMA0 Channel Disable & Stop
+        DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
+        IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
 
+        // prepare data for display
+        for (i=0;i<LCD_WIDTH;i++){
+            prev_byteWavedata[0][i] = byteWavedata[0][i];
+            tempdata = originalWavedata[0][i]/2.3 +18;// @32.768 /1 +220;
+            if (tempdata > 239) tempdata = 239;
+            if (tempdata < 0) tempdata = 0;
+            byteWavedata[0][i] = (uint16_t)(tempdata );///2 +2048+740)>>4) ;    //0..4095 -> 0..240
+        }
+        for (i=0;i<LCD_WIDTH;i++){
+            prev_byteWavedata[1][i] = byteWavedata[1][i];
+            tempdata = originalWavedata[1][i]/2.3 +114;
+            if (tempdata > 239) tempdata = 239;
+            if (tempdata < 0) tempdata = 0;            
+            byteWavedata[1][i] = (uint16_t)(tempdata);//*2 +2048-645) >>4 ;    //0..4095 -> 0..240
+        }
+        
+        // display
+        prev_gx = byteWavedata[0][0];
+        prev_prev_gx =  prev_byteWavedata[0][0];
+        for (i=0;i<LCD_WIDTH;i++){
+            gx = prev_byteWavedata[0][i];
+            GLCD_LineHL(prev_prev_gx, gx, i, ColorBlack);
+            prev_prev_gx = gx;
+            gx = byteWavedata[0][i];
+            GLCD_LineHL(prev_gx, gx, i, ColorYellow);    //yellow
+            prev_gx = gx;
+        }
+        prev_gx2 = byteWavedata[1][0];
+        prev_prev_gx2 =  prev_byteWavedata[1][0];
+        for (i=0;i<LCD_WIDTH;i++){
+            gx2 = prev_byteWavedata[1][i];
+            GLCD_LineHL(prev_prev_gx2, gx2, i, ColorBlack);
+            prev_prev_gx2 = gx2;
+            gx2 = byteWavedata[1][i];
+            GLCD_LineHL(prev_gx2, gx2, i, ColorCyan);  //cyan
+            prev_gx2 = gx2;
+        }
     }
 
     return 1;

@@ -56,6 +56,298 @@
 */
 /**
   @Summary
+    Sets the GPIO pin, RB14, high using LATB14.
+
+  @Description
+    Sets the GPIO pin, RB14, high using LATB14.
+
+  @Preconditions
+    The RB14 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB14 high (1)
+    channel_AN14_SetHigh();
+    </code>
+
+*/
+#define channel_AN14_SetHigh()          (_LATB14 = 1)
+/**
+  @Summary
+    Sets the GPIO pin, RB14, low using LATB14.
+
+  @Description
+    Sets the GPIO pin, RB14, low using LATB14.
+
+  @Preconditions
+    The RB14 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB14 low (0)
+    channel_AN14_SetLow();
+    </code>
+
+*/
+#define channel_AN14_SetLow()           (_LATB14 = 0)
+/**
+  @Summary
+    Toggles the GPIO pin, RB14, using LATB14.
+
+  @Description
+    Toggles the GPIO pin, RB14, using LATB14.
+
+  @Preconditions
+    The RB14 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RB14
+    channel_AN14_Toggle();
+    </code>
+
+*/
+#define channel_AN14_Toggle()           (_LATB14 ^= 1)
+/**
+  @Summary
+    Reads the value of the GPIO pin, RB14.
+
+  @Description
+    Reads the value of the GPIO pin, RB14.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RB14
+    postValue = channel_AN14_GetValue();
+    </code>
+
+*/
+#define channel_AN14_GetValue()         _RB14
+/**
+  @Summary
+    Configures the GPIO pin, RB14, as an input.
+
+  @Description
+    Configures the GPIO pin, RB14, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB14 as an input
+    channel_AN14_SetDigitalInput();
+    </code>
+
+*/
+#define channel_AN14_SetDigitalInput()  (_TRISB14 = 1)
+/**
+  @Summary
+    Configures the GPIO pin, RB14, as an output.
+
+  @Description
+    Configures the GPIO pin, RB14, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB14 as an output
+    channel_AN14_SetDigitalOutput();
+    </code>
+
+*/
+#define channel_AN14_SetDigitalOutput() (_TRISB14 = 0)
+/**
+  @Summary
+    Sets the GPIO pin, RB15, high using LATB15.
+
+  @Description
+    Sets the GPIO pin, RB15, high using LATB15.
+
+  @Preconditions
+    The RB15 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB15 high (1)
+    channel_AN15_SetHigh();
+    </code>
+
+*/
+#define channel_AN15_SetHigh()          (_LATB15 = 1)
+/**
+  @Summary
+    Sets the GPIO pin, RB15, low using LATB15.
+
+  @Description
+    Sets the GPIO pin, RB15, low using LATB15.
+
+  @Preconditions
+    The RB15 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RB15 low (0)
+    channel_AN15_SetLow();
+    </code>
+
+*/
+#define channel_AN15_SetLow()           (_LATB15 = 0)
+/**
+  @Summary
+    Toggles the GPIO pin, RB15, using LATB15.
+
+  @Description
+    Toggles the GPIO pin, RB15, using LATB15.
+
+  @Preconditions
+    The RB15 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RB15
+    channel_AN15_Toggle();
+    </code>
+
+*/
+#define channel_AN15_Toggle()           (_LATB15 ^= 1)
+/**
+  @Summary
+    Reads the value of the GPIO pin, RB15.
+
+  @Description
+    Reads the value of the GPIO pin, RB15.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RB15
+    postValue = channel_AN15_GetValue();
+    </code>
+
+*/
+#define channel_AN15_GetValue()         _RB15
+/**
+  @Summary
+    Configures the GPIO pin, RB15, as an input.
+
+  @Description
+    Configures the GPIO pin, RB15, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB15 as an input
+    channel_AN15_SetDigitalInput();
+    </code>
+
+*/
+#define channel_AN15_SetDigitalInput()  (_TRISB15 = 1)
+/**
+  @Summary
+    Configures the GPIO pin, RB15, as an output.
+
+  @Description
+    Configures the GPIO pin, RB15, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RB15 as an output
+    channel_AN15_SetDigitalOutput();
+    </code>
+
+*/
+#define channel_AN15_SetDigitalOutput() (_TRISB15 = 0)
+/**
+  @Summary
     Sets the GPIO pin, RB5, high using LATB5.
 
   @Description
@@ -2244,6 +2536,298 @@
 
 */
 #define IO_RF1_SetDigitalOutput() (_TRISF1 = 0)
+/**
+  @Summary
+    Sets the GPIO pin, RF4, high using LATF4.
+
+  @Description
+    Sets the GPIO pin, RF4, high using LATF4.
+
+  @Preconditions
+    The RF4 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF4 high (1)
+    channel_AN11_SetHigh();
+    </code>
+
+*/
+#define channel_AN11_SetHigh()          (_LATF4 = 1)
+/**
+  @Summary
+    Sets the GPIO pin, RF4, low using LATF4.
+
+  @Description
+    Sets the GPIO pin, RF4, low using LATF4.
+
+  @Preconditions
+    The RF4 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF4 low (0)
+    channel_AN11_SetLow();
+    </code>
+
+*/
+#define channel_AN11_SetLow()           (_LATF4 = 0)
+/**
+  @Summary
+    Toggles the GPIO pin, RF4, using LATF4.
+
+  @Description
+    Toggles the GPIO pin, RF4, using LATF4.
+
+  @Preconditions
+    The RF4 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RF4
+    channel_AN11_Toggle();
+    </code>
+
+*/
+#define channel_AN11_Toggle()           (_LATF4 ^= 1)
+/**
+  @Summary
+    Reads the value of the GPIO pin, RF4.
+
+  @Description
+    Reads the value of the GPIO pin, RF4.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RF4
+    postValue = channel_AN11_GetValue();
+    </code>
+
+*/
+#define channel_AN11_GetValue()         _RF4
+/**
+  @Summary
+    Configures the GPIO pin, RF4, as an input.
+
+  @Description
+    Configures the GPIO pin, RF4, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF4 as an input
+    channel_AN11_SetDigitalInput();
+    </code>
+
+*/
+#define channel_AN11_SetDigitalInput()  (_TRISF4 = 1)
+/**
+  @Summary
+    Configures the GPIO pin, RF4, as an output.
+
+  @Description
+    Configures the GPIO pin, RF4, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF4 as an output
+    channel_AN11_SetDigitalOutput();
+    </code>
+
+*/
+#define channel_AN11_SetDigitalOutput() (_TRISF4 = 0)
+/**
+  @Summary
+    Sets the GPIO pin, RF5, high using LATF5.
+
+  @Description
+    Sets the GPIO pin, RF5, high using LATF5.
+
+  @Preconditions
+    The RF5 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF5 high (1)
+    channel_AN10_SetHigh();
+    </code>
+
+*/
+#define channel_AN10_SetHigh()          (_LATF5 = 1)
+/**
+  @Summary
+    Sets the GPIO pin, RF5, low using LATF5.
+
+  @Description
+    Sets the GPIO pin, RF5, low using LATF5.
+
+  @Preconditions
+    The RF5 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Set RF5 low (0)
+    channel_AN10_SetLow();
+    </code>
+
+*/
+#define channel_AN10_SetLow()           (_LATF5 = 0)
+/**
+  @Summary
+    Toggles the GPIO pin, RF5, using LATF5.
+
+  @Description
+    Toggles the GPIO pin, RF5, using LATF5.
+
+  @Preconditions
+    The RF5 must be set to an output.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Toggle RF5
+    channel_AN10_Toggle();
+    </code>
+
+*/
+#define channel_AN10_Toggle()           (_LATF5 ^= 1)
+/**
+  @Summary
+    Reads the value of the GPIO pin, RF5.
+
+  @Description
+    Reads the value of the GPIO pin, RF5.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    uint16_t portValue;
+
+    // Read RF5
+    postValue = channel_AN10_GetValue();
+    </code>
+
+*/
+#define channel_AN10_GetValue()         _RF5
+/**
+  @Summary
+    Configures the GPIO pin, RF5, as an input.
+
+  @Description
+    Configures the GPIO pin, RF5, as an input.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF5 as an input
+    channel_AN10_SetDigitalInput();
+    </code>
+
+*/
+#define channel_AN10_SetDigitalInput()  (_TRISF5 = 1)
+/**
+  @Summary
+    Configures the GPIO pin, RF5, as an output.
+
+  @Description
+    Configures the GPIO pin, RF5, as an output.
+
+  @Preconditions
+    None.
+
+  @Returns
+    None.
+
+  @Param
+    None.
+
+  @Example
+    <code>
+    // Sets the RF5 as an output
+    channel_AN10_SetDigitalOutput();
+    </code>
+
+*/
+#define channel_AN10_SetDigitalOutput() (_TRISF5 = 0)
 /**
   @Summary
     Sets the GPIO pin, RG2, high using LATG2.

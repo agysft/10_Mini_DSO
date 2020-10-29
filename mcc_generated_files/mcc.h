@@ -52,9 +52,11 @@
 #include <stdbool.h>
 
 #include "tmr5.h"
+#include "tmr2.h"
+#include "padc1.h"
+#include "spi1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
-#include "spi1.h"
 
 #warning "This file will be removed in future MCC releases. Use system.h instead."
 

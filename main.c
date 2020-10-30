@@ -70,7 +70,7 @@
 #define GLCDBL      PORTDbits.RD6
 #define LCD_WIDTH   320 //LCD width
 #define LCD_HEIGHT  240 //LCD height
-/* color */
+/* colors */
 #define ColorBlack      0x0000
 #define ColorBlue       0x001f
 #define ColorGreen      0x07e0
@@ -79,12 +79,17 @@
 #define ColorMagenta    0xf81f
 #define ColorYellow     0xffe0
 #define ColorWhite      0xffff
+#define ColorScale      0b1000010000010000  //0bRRRRRGGGGGGBBBBB
 /* Attenuator ON-OFF */
 #define CH1ATT  PORTGbits.RG7   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
 #define CH2ATT  PORTGbits.RG8   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
 
-// Rotary Encoder
+/* Rotary Encoder */
 int pressedTime = 0; int rotData, rotDir, swPos; float rotVal; float rotValMag = 0.5;
+/* Wave Data */
+static int originalWavedata[2][LCD_WIDTH*3];
+uint8_t byteWavedata[2][LCD_WIDTH];
+uint8_t prev_byteWavedata[2][LCD_WIDTH];
 
 void GLCD_COM(uint8_t acommand){
     GLCDDC = 0;     //0:command
@@ -129,7 +134,7 @@ void GLCD_Init(){
     GLCDCS = 0;     //CS=enable
 
 #ifdef LCD_2_4inch
-    /* for 2.4inch */
+    /* for 2.4inch ILI9341 */
 	GLCD_COM(0x11); //Sleep out
 	
 	GLCD_COM(0xCF);
@@ -219,7 +224,7 @@ void GLCD_Init(){
 	GLCD_DAT(0x0F);
 	GLCD_COM(0x29); //Display on
 #else
-    /* for 2inch */
+    /* for 2inch ST7789 */
 	GLCD_COM(0x36);
 	GLCD_DAT(0xA0);
 
@@ -429,6 +434,50 @@ void TMR5_int(){
             return;
     }
 }
+void WaveDisp(int CH, float WaveDiv, uint16_t WaveOffset, uint16_t WaveColor){
+    int i, tempData;
+    uint16_t gx, prev_gx, prev_prev_gx;
+
+    // prepare data for display
+    for (i=0;i<LCD_WIDTH;i++){
+        prev_byteWavedata[CH][i] = byteWavedata[CH][i];
+        tempData = originalWavedata[CH][i] / WaveDiv + WaveOffset;
+        if (tempData > 239) tempData = 239;
+        if (tempData < 0) tempData = 0;
+        byteWavedata[CH][i] = (uint8_t)(tempData);  //0..4095 -> 0..240
+    }
+    // display
+    prev_gx = byteWavedata[CH][0];
+    prev_prev_gx =  prev_byteWavedata[CH][0];
+    for (i=0;i<LCD_WIDTH;i++){
+        gx = prev_byteWavedata[CH][i];
+        GLCD_LineHL(prev_prev_gx, gx, i, ColorBlack);   // clear previous waveform
+        prev_prev_gx = gx;
+        gx = byteWavedata[CH][i];
+        GLCD_LineHL(prev_gx, gx, i, WaveColor);    // display waveform
+        prev_gx = gx;
+    }
+}
+void DispScale(){
+    int x,y;
+    GLCD_LineHrz(0,16,LCD_WIDTH,ColorScale);
+    GLCD_LineHrz(0,8*16,LCD_WIDTH,ColorScale);
+    GLCD_LineHrz(0,LCD_HEIGHT-1,LCD_WIDTH,ColorScale);
+    for ( y = 0; y < 8; y++){
+        for ( x = 1; x < 10; x++){
+            GLCD_LineHrz( x*32, y*32+32, 2, ColorScale);
+        }
+    }
+    GLCD_LineVrt(0,16,LCD_HEIGHT-1-16,ColorScale);
+    GLCD_LineVrt(160,16,LCD_HEIGHT-1-16,ColorScale);
+    GLCD_LineVrt(319,16,LCD_HEIGHT-1-16,ColorScale);
+    for ( y = 0; y < 16; y++) GLCD_LineHrz( 158, y*16+16, 5, ColorScale);
+    for ( y = 0; y < 16; y++) GLCD_LineHrz( 0, y*16+16, 3, ColorScale);
+    for ( y = 0; y < 16; y++) GLCD_LineHrz( 316, y*16+16, 3, ColorScale);
+    for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 126, 5, ColorScale);
+    for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 17, 3, ColorScale);
+    for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 236, 3, ColorScale);
+}
 /*
                          Main application
  */
@@ -436,12 +485,6 @@ int main(void)
 {
     int i;
     char pString[32]="Hello World !";// font16.h 29char/line
-    static int originalWavedata[2][LCD_WIDTH*3];
-    uint8_t byteWavedata[2][LCD_WIDTH];
-    uint8_t prev_byteWavedata[2][LCD_WIDTH];
-    uint16_t prev_gx, gx, prev_prev_gx;
-    uint16_t prev_gx2, gx2, prev_prev_gx2;
-    int tempdata;
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
@@ -469,7 +512,7 @@ int main(void)
     AMP2CONbits.NINSEL = 0b110; // 0b110 = voltage follower
     AMP2CONbits.PINSEL = 0b010; // 0b010 = OAxP1
 
-        /*** DMA Setting ****/
+    /*** DMA Setting ****/
     DMACON = 0;
 	DMACONbits.DMAEN = 1;               // DMA Enable
 	DMACONbits.PRSSEL = 1;              // 0: Fixed Priority, 1: Round-robin
@@ -483,7 +526,7 @@ int main(void)
 	DMACH0bits.SAMODE = 0b00;              // Source Addrs 0b11:PIA mode --0b00:No Increment--
 	DMACH0bits.DAMODE = 1;              // Dist Addrs Increment
 	DMACH0bits.SIZE = 0;                // Word Mode(16bit)
-	DMASRC0 = (unsigned int)&ADRES0;                                                                                                                                                                         ;    // From ADC Buf0 select
+	DMASRC0 = (unsigned int)&ADRES0;    // From ADC Buf0 select
 	DMADST0 = (unsigned int)originalWavedata[0];  // To Buffer select
 	DMACNT0 = LCD_WIDTH*3;                      // DMA Counter
 	DMAINT0 = 0;                        // All Clear
@@ -498,7 +541,7 @@ int main(void)
 	DMACH1bits.SAMODE = 0b00;              // Source Addrs 0b11:PIA mode --0b00:No Increment--
 	DMACH1bits.DAMODE = 1;              // Dist Addrs Increment
 	DMACH1bits.SIZE = 0;                // Word Mode(16bit)
-	DMASRC1 = (unsigned int)&ADRES1;                                                                                                                                                                         ;    // From ADC Buf0 select
+	DMASRC1 = (unsigned int)&ADRES1;    // From ADC Buf0 select
 	DMADST1 = (unsigned int)originalWavedata[1];  // To Buffer select
 	DMACNT1 = LCD_WIDTH*3;                      // DMA Counter
 	DMAINT1 = 0;                        // All Clear
@@ -532,43 +575,10 @@ int main(void)
         DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
         IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
 
-        // prepare data for display
-        for (i=0;i<LCD_WIDTH;i++){
-            prev_byteWavedata[0][i] = byteWavedata[0][i];
-            tempdata = originalWavedata[0][i]/2.3 +18;// @32.768 /1 +220;
-            if (tempdata > 239) tempdata = 239;
-            if (tempdata < 0) tempdata = 0;
-            byteWavedata[0][i] = (uint16_t)(tempdata );///2 +2048+740)>>4) ;    //0..4095 -> 0..240
-        }
-        for (i=0;i<LCD_WIDTH;i++){
-            prev_byteWavedata[1][i] = byteWavedata[1][i];
-            tempdata = originalWavedata[1][i]/2.3 +114;
-            if (tempdata > 239) tempdata = 239;
-            if (tempdata < 0) tempdata = 0;            
-            byteWavedata[1][i] = (uint16_t)(tempdata);//*2 +2048-645) >>4 ;    //0..4095 -> 0..240
-        }
-        
-        // display
-        prev_gx = byteWavedata[0][0];
-        prev_prev_gx =  prev_byteWavedata[0][0];
-        for (i=0;i<LCD_WIDTH;i++){
-            gx = prev_byteWavedata[0][i];
-            GLCD_LineHL(prev_prev_gx, gx, i, ColorBlack);
-            prev_prev_gx = gx;
-            gx = byteWavedata[0][i];
-            GLCD_LineHL(prev_gx, gx, i, ColorYellow);    //yellow
-            prev_gx = gx;
-        }
-        prev_gx2 = byteWavedata[1][0];
-        prev_prev_gx2 =  prev_byteWavedata[1][0];
-        for (i=0;i<LCD_WIDTH;i++){
-            gx2 = prev_byteWavedata[1][i];
-            GLCD_LineHL(prev_prev_gx2, gx2, i, ColorBlack);
-            prev_prev_gx2 = gx2;
-            gx2 = byteWavedata[1][i];
-            GLCD_LineHL(prev_gx2, gx2, i, ColorCyan);  //cyan
-            prev_gx2 = gx2;
-        }
+        DispScale();
+        WaveDisp(0, 2.3, 18, ColorYellow);
+        WaveDisp(1, 2.3, 114, ColorCyan);
+
     }
 
     return 1;

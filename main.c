@@ -85,11 +85,28 @@
 #define CH2ATT  PORTGbits.RG8   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
 
 /* Rotary Encoder */
-int pressedTime = 0; int rotData, rotDir, swPos; float rotVal; float rotValMag = 0.5;
+int rotData, rotDir, swPos; float rotVal; float rotValMag = 0.5;
 /* Wave Data */
 static int originalWavedata[2][LCD_WIDTH*3];
 uint8_t byteWavedata[2][LCD_WIDTH];
 uint8_t prev_byteWavedata[2][LCD_WIDTH];
+/* Value for the switch pushing time */
+int SWREValue = 0, SW1Value = 0, SW2Value = 0, SW3Value = 0, SW4Value = 0;
+/* Time axis setting table */
+    /*                      PR2
+     *  16us/div	3       0x3
+     *  20us/div	4   	0x4
+     *  100us/div	24      0x18
+     *  200us/div	49  	0x31
+     *  500us/div	124     0x7C
+     *  1ms/div     249 	0x0F9
+     *  2ms/div     499     0x1F3
+     *  5ms/div     1249	0x4E1
+     *  10ms/div	2499	0x9C3
+     */
+uint8_t TimeAxisTableIndex = 2;
+uint16_t TimeAxisTable[]={3, 4, 0x18, 0x31, 0x7c, 0xf9, 0x1f3, 0x4e1, 0x9c3};
+char TimeAxisTable_s[9][11]={"  16us/div","  20us/div"," 100us/div"," 200us/div"," 500us/div","   1ms/div","   2ms/div","   5ms/div","  10ms/div"};
 
 void GLCD_COM(uint8_t acommand){
     GLCDDC = 0;     //0:command
@@ -407,10 +424,14 @@ void GLCD_DrawString(uint16_t Xpoint, uint16_t Ypoint, const char * pString, uin
     }
 }
 void TMR5_int(){
-    // Interrupt occurs every 20ms; 
+    // Interrupt occurs every 5ms; 
     //  for detection of the rotary encoder and
     //  for detection of the pressed time of the SW
-    if ( SWRotaryEncoder == 0 ) pressedTime++;
+    if ( SWRotaryEncoder == 0 ) { SWREValue++; } else { SWREValue = 0; }
+    if ( SW1 == 0 ) { SW1Value++; } else { SW1Value = 0; }
+    if ( SW2 == 0 ) { SW2Value++; } else { SW2Value = 0; }
+    if ( SW3 == 0 ) { SW3Value++; } else { SW3Value = 0; }
+    if ( SW4 == 0 ) { SW4Value++; } else { SW4Value = 0; }
     rotData = ((rotData & 0x3) << 2) | (PORTF & 0x3);
     switch(rotData){
         case 0b0010 :
@@ -434,14 +455,14 @@ void TMR5_int(){
             return;
     }
 }
-void WaveDisp(int CH, float WaveDiv, uint16_t WaveOffset, uint16_t WaveColor){
+void DispWave(int CH, float WaveDiv, uint16_t WaveOffset, int DetectPosition, uint16_t WaveColor){
     int i, tempData;
     uint16_t gx, prev_gx, prev_prev_gx;
 
     // prepare data for display
     for (i=0;i<LCD_WIDTH;i++){
         prev_byteWavedata[CH][i] = byteWavedata[CH][i];
-        tempData = originalWavedata[CH][i] / WaveDiv + WaveOffset;
+        tempData = originalWavedata[CH][i+DetectPosition] / WaveDiv + WaveOffset;
         if (tempData > 239) tempData = 239;
         if (tempData < 0) tempData = 0;
         byteWavedata[CH][i] = (uint8_t)(tempData);  //0..4095 -> 0..240
@@ -478,12 +499,32 @@ void DispScale(){
     for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 17, 3, ColorScale);
     for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 236, 3, ColorScale);
 }
+int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hysteresis, int Rising_or_Falling_edge, int DetectionInterval){
+    /*
+     *  edge detect = seek rising/falling edge
+     *
+     *      CH1orCH2:        CH1=0, CH2=1
+     *      DetectPosition:  Left = 0, Center = 160, Right = 320
+     *      ThresholdLevel:  +-0..+-2047
+     *      Hysteresis:      noise suppress 1<
+     *      Rising_or_Falling_edge:  Rising = 1, Falling = -1
+     *      DetectionInterval:   interval of time axis 1..2
+     *      return:  edge position 
+     */
+    int i;
+    for ( i = DetectPosition; i < (LCD_WIDTH*2 -DetectionInterval +DetectPosition ); i++ ){
+        if ( (Rising_or_Falling_edge * ( originalWavedata[CH1orCH2][i + DetectionInterval] - ThresholdLevel - Hysteresis ) > 0 ) 
+                && (Rising_or_Falling_edge * ( ThresholdLevel - Hysteresis - originalWavedata[CH1orCH2][i] ) > 0 ) ) break;
+    }
+    if ( i > LCD_WIDTH*2 ) i = DetectPosition;
+    return i;
+}
 /*
                          Main application
  */
 int main(void)
 {
-    int i;
+    int t;
     char pString[32]="Hello World !";// font16.h 29char/line
     
     // initialize the device
@@ -551,7 +592,7 @@ int main(void)
 
     T2CONbits.TON = 0;                  // stop Timer2
 
-    /* Select ATT 0/1 = 15V/1.25V */
+    /* Select ATT 0/1 = 15V/1.5V */
     CH1ATT = 1; Nop();
     CH2ATT = 1;
     GLCD_DrawString(0,0,"2CH DSO, CH0=Cyan, CH1=Yellow",0xffff);
@@ -559,6 +600,7 @@ int main(void)
     while (1)
     {
         // Add your application code
+        /* Capture two waves */
         IEC1bits.T5IE = false;  // disable TMR5 interrupt; stop detection of the rotary encoder
         ADCON1bits.ADON = 1;    // ADC Enable
         TMR2 = 0;               // reset Timer2
@@ -575,9 +617,10 @@ int main(void)
         DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
         IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
 
-        DispScale();
-        WaveDisp(0, 2.3, 18, ColorYellow);
-        WaveDisp(1, 2.3, 114, ColorCyan);
+        t = DetectEdge(1, 160, 50, 5, -1, 1);
+        DispScale();    // Display Scale
+        DispWave(0, 4.0036, 24, t, ColorYellow);  // display CH1 wave
+        DispWave(1, 4.0036, 120, t, ColorCyan);   // display CH2 wave
 
     }
 

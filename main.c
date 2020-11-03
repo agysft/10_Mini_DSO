@@ -106,7 +106,16 @@ int SWREValue = 0, SW1Value = 0, SW2Value = 0, SW3Value = 0, SW4Value = 0;
      */
 uint8_t TimeAxisTableIndex = 2;
 uint16_t TimeAxisTable[]={3, 4, 0x18, 0x31, 0x7c, 0xf9, 0x1f3, 0x4e1, 0x9c3};
-char TimeAxisTable_s[9][11]={"  16us/div","  20us/div"," 100us/div"," 200us/div"," 500us/div","   1ms/div","   2ms/div","   5ms/div","  10ms/div"};
+char TimeAxisTable_s[9][11]={
+    " 16us/div\0",
+    " 20us/div\0",
+    "100us/div\0",
+    "200us/div\0",
+    "500us/div\0",
+    "  1ms/div\0",
+    "  2ms/div\0",
+    "  5ms/div\0",
+    " 10ms/div\0"};
 
 void GLCD_COM(uint8_t acommand){
     GLCDDC = 0;     //0:command
@@ -516,7 +525,11 @@ int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hystere
         if ( (Rising_or_Falling_edge * ( originalWavedata[CH1orCH2][i + DetectionInterval] - ThresholdLevel - Hysteresis ) > 0 ) 
                 && (Rising_or_Falling_edge * ( ThresholdLevel - Hysteresis - originalWavedata[CH1orCH2][i] ) > 0 ) ) break;
     }
-    if ( i > LCD_WIDTH*2 ) i = DetectPosition;
+    if ( i > LCD_WIDTH*2 ) {
+        i = DetectPosition;
+    } else {
+        i -= DetectPosition;
+    }
     return i;
 }
 /*
@@ -526,6 +539,7 @@ int main(void)
 {
     int t;
     char pString[32]="Hello World !";// font16.h 29char/line
+    float prev_rotVal;
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
@@ -595,7 +609,12 @@ int main(void)
     /* Select ATT 0/1 = 15V/1.5V */
     CH1ATT = 1; Nop();
     CH2ATT = 1;
-    GLCD_DrawString(0,0,"2CH DSO, CH0=Cyan, CH1=Yellow",0xffff);
+    //GLCD_DrawString(0,0,"2CH DSO, CH0=Cyan, CH1=Yellow",0xffff);
+    
+    /* Change Sampling frequency by Rotary Encoder */
+    rotVal = (float) TimeAxisTableIndex;
+    rotValMag = 0.2;
+    prev_rotVal = rotVal;
     
     while (1)
     {
@@ -617,11 +636,19 @@ int main(void)
         DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
         IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
 
-        t = DetectEdge(1, 160, 50, 5, -1, 1);
+        t = DetectEdge(1, 160, 50, 1, 1, 1);
         DispScale();    // Display Scale
         DispWave(0, 4.0036, 24, t, ColorYellow);  // display CH1 wave
         DispWave(1, 4.0036, 120, t, ColorCyan);   // display CH2 wave
 
+        sprintf(pString,"%s",TimeAxisTable_s[(int)prev_rotVal]);
+        GLCD_DrawString(0, 0, pString, ColorBlack);
+        if (rotVal < 0) rotVal = 0;
+        if (rotVal > 8) rotVal = 8;
+        sprintf(pString,"%s",TimeAxisTable_s[(int)rotVal]);
+        GLCD_DrawString(0, 0, pString, ColorWhite);
+        PR2 = TimeAxisTable[(int)rotVal];
+        prev_rotVal = rotVal;
     }
 
     return 1;

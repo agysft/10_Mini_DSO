@@ -512,7 +512,7 @@ int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hystere
     /*
      *  edge detect = seek rising/falling edge
      *
-     *      CH1orCH2:        CH1=0, CH2=1
+     *      CH1orCH2:        CH1=1, CH2=2
      *      DetectPosition:  Left = 0, Center = 160, Right = 320
      *      ThresholdLevel:  +-0..+-2047
      *      Hysteresis:      noise suppress 1<
@@ -521,6 +521,8 @@ int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hystere
      *      return:  edge position 
      */
     int i;
+    if (CH1orCH2 > 2) return -1;
+    CH1orCH2 -= 1;
     for ( i = DetectPosition; i < (LCD_WIDTH*2 -DetectionInterval +DetectPosition ); i++ ){
         if ( (Rising_or_Falling_edge * ( originalWavedata[CH1orCH2][i + DetectionInterval] - ThresholdLevel - Hysteresis ) > 0 ) 
                 && (Rising_or_Falling_edge * ( ThresholdLevel - Hysteresis - originalWavedata[CH1orCH2][i] ) > 0 ) ) break;
@@ -540,6 +542,7 @@ int main(void)
     int t;
     char pString[32]="Hello World !";// font16.h 29char/line
     float prev_rotVal;
+    int SelectedCH = 1; int OperationMode = 1;
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
@@ -636,11 +639,43 @@ int main(void)
         DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
         IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
 
-        t = DetectEdge(1, 160, 50, 1, 1, 1);
+        t = DetectEdge(SelectedCH, 160, 50, 1, 1, 1);
         DispScale();    // Display Scale
-        DispWave(0, 4.0036, 24, t, ColorYellow);  // display CH1 wave
-        DispWave(1, 4.0036, 120, t, ColorCyan);   // display CH2 wave
+        DispWave(0, 4.0036, 120, t, ColorCyan);  // display CH1 wave
+        DispWave(1, 4.0036, 24, t, ColorYellow);   // display CH2 wave
 
+        if (SW1Value > 0){
+            SelectedCH = 1;
+        } 
+        if (SW2Value > 0){
+            SelectedCH = 2;
+        } 
+        if (SW3Value > 0){
+            SelectedCH = 3;
+        } 
+        if (SW4Value > 0){
+            SelectedCH = 4;
+        }
+        switch (SelectedCH){
+            case 1:{
+                LEDRotaryEncoderBlue =1;Nop();
+                LEDRotaryEncoderOrange=0;
+                break;
+            }
+            case 2:{
+                LEDRotaryEncoderOrange=1;Nop();
+                LEDRotaryEncoderBlue=0;
+                break;
+            }
+            case 3:{
+                LEDRotaryEncoderOrange=1;Nop();
+                LEDRotaryEncoderBlue=1;
+                break;
+            }
+            default:{
+                
+            }
+        }
         sprintf(pString,"%s",TimeAxisTable_s[(int)prev_rotVal]);
         GLCD_DrawString(0, 0, pString, ColorBlack);
         if (rotVal < 0) rotVal = 0;

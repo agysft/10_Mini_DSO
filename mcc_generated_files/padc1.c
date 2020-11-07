@@ -77,10 +77,10 @@ void PADC1_Initialize(void)
     ADL0CONL = (0x8501 & 0x7FFF) | 0x4000;  // open manual switch and Enable sample list later
     
     //Set table registers
-    // UCTMU disabled; ADCH AN11\AN10; DIFF enabled; 
-    ADTBL0 =  0x400a;
     // UCTMU disabled; ADCH AN15\AN14; DIFF enabled; 
-    ADTBL1 =  0x400e;
+    ADTBL0 =  0x400e;
+    // UCTMU disabled; ADCH AN11\AN10; DIFF enabled; 
+    ADTBL1 =  0x400a;
 
     // Set table pointer registers
     ADL0PTR =0;

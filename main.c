@@ -70,6 +70,7 @@
 #define GLCDBL      PORTDbits.RD6
 #define LCD_WIDTH   320 //LCD width
 #define LCD_HEIGHT  240 //LCD height
+int DisplayOrientation = 0;
 /* colors */
 #define ColorBlack      0x0000
 #define ColorBlue       0x001f
@@ -96,6 +97,7 @@ int SWREValue = 0, SW1Value = 0, SW2Value = 0, SW3Value = 0, SW4Value = 0;
     /*                      PR2
      *  16us/div	3       0x3
      *  20us/div	4   	0x4
+     *  40us/div    9       0x9
      *  100us/div	24      0x18
      *  200us/div	49  	0x31
      *  500us/div	124     0x7C
@@ -105,10 +107,11 @@ int SWREValue = 0, SW1Value = 0, SW2Value = 0, SW3Value = 0, SW4Value = 0;
      *  10ms/div	2499	0x9C3
      */
 uint8_t TimeAxisTableIndex = 2;
-uint16_t TimeAxisTable[]={3, 4, 0x18, 0x31, 0x7c, 0xf9, 0x1f3, 0x4e1, 0x9c3};
-char TimeAxisTable_s[9][11]={
+uint16_t TimeAxisTable[]={3, 4, 9, 0x18, 0x31, 0x7c, 0xf9, 0x1f3, 0x4e1, 0x9c3};
+char TimeAxisTable_s[10][11]={
     " 16us/div\0",
     " 20us/div\0",
+    " 40us/div\0",
     "100us/div\0",
     "200us/div\0",
     "500us/div\0",
@@ -116,6 +119,35 @@ char TimeAxisTable_s[9][11]={
     "  2ms/div\0",
     "  5ms/div\0",
     " 10ms/div\0"};
+/* Voltage axis setting table */
+    /*                
+     *  0.25V/div	1.0009
+     *  0.5V/div	2.0018
+     *  1V/div      4.0036
+     *  2V/div      8.0072
+     *  5V/div      20.018
+     *  10V/div     40.036
+     */
+int VoltageAxisTableIndex[2] = {2, 2};
+float VoltageAxisTable[2][6]={
+    {1.0009, 2.0018, 4.0036, 8.0072, 20.018, 40.036},
+    {1.0009, 2.0018, 4.0036, 8.0072, 20.018, 40.036}
+};
+char VoltageAxisTable_s[2][6][11]={
+    {"0.25V/div\0",
+    " 0.5V/div\0",
+    "   1V/div\0",
+    "   2V/div\0",
+    "   5V/div\0",
+    "  10V/div\0"},
+    {"0.25V/div\0",
+    " 0.5V/div\0",
+    "   1V/div\0",
+    "   2V/div\0",
+    "   5V/div\0",
+    "  10V/div\0"}
+};
+int VoltageOffset[2] = {120, 24};   // Display offset CH1=120, CH2=24
 
 void GLCD_COM(uint8_t acommand){
     GLCDDC = 0;     //0:command
@@ -342,6 +374,17 @@ void GLCD_Init(){
 #endif
     GLCDBL = 1;  //BL On
 }
+void GLCD_DisplayOrientation(int n){
+    if (n==0){
+        GLCD_COM(0x36); // Memory Access Control
+        GLCD_DAT(0b10101000); // MV=1,MX=0,MY=1   MY MX MV ML BGR MH 0 0
+    //	GLCD_DAT(0b01101000); // MV=1,MX=1,MY=0   MY MX MV ML BGR MH 0 0
+    } else {
+        GLCD_COM(0x36); // Memory Access Control
+    //  GLCD_DAT(0b10101000); // MV=1,MX=0,MY=1   MY MX MV ML BGR MH 0 0
+    	GLCD_DAT(0b01101000); // MV=1,MX=1,MY=0   MY MX MV ML BGR MH 0 0
+    }
+}
 void GLCD_SetWindow(uint16_t Xstart, uint16_t Ystart, uint16_t Xend, uint16_t Yend){ 
 	GLCD_COM(0x2a);
 	GLCD_DAT(0x00);
@@ -383,6 +426,12 @@ void GLCD_LineHrz(uint16_t x, uint16_t y, uint16_t l, uint16_t color){
     GLCD_SetCursor(x, y);
     for ( i=0; i< l; i++ ){
         GLCD_DAT16(color);
+    }
+}
+void GLCD_ClearCharacterArea(){
+    int i;
+    for ( i=0; i<15; i++){
+        GLCD_LineHrz(0,i,320,ColorBlack);
     }
 }
 void GLCD_LineVrt(uint16_t x, uint16_t y, uint16_t l, uint16_t color){
@@ -542,7 +591,8 @@ int main(void)
     int t;
     char pString[32]="Hello World !";// font16.h 29char/line
     float prev_rotVal;
-    int SelectedCH = 1; int OperationMode = 1;
+    int SelectedCH = 1; int prevSelectedCH = 1; 
+    int OperationMode = 1; int prevOperationMode = 1;
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
@@ -612,13 +662,15 @@ int main(void)
     /* Select ATT 0/1 = 15V/1.5V */
     CH1ATT = 1; Nop();
     CH2ATT = 1;
-    //GLCD_DrawString(0,0,"2CH DSO, CH0=Cyan, CH1=Yellow",0xffff);
+
+    /* UART */
+    printf("SYSTEM Initialized\n");
     
     /* Change Sampling frequency by Rotary Encoder */
     rotVal = (float) TimeAxisTableIndex;
     rotValMag = 0.2;
     prev_rotVal = rotVal;
-    
+
     while (1)
     {
         // Add your application code
@@ -641,49 +693,98 @@ int main(void)
 
         t = DetectEdge(SelectedCH, 160, 50, 1, 1, 1);
         DispScale();    // Display Scale
-        DispWave(0, 4.0036, 120, t, ColorCyan);  // display CH1 wave
-        DispWave(1, 4.0036, 24, t, ColorYellow);   // display CH2 wave
+        DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], VoltageOffset[0], t, ColorCyan);  // display CH1 wave
+        DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltageOffset[1], t, ColorYellow);   // display CH2 wave
 
-        if (SW1Value > 0){
-            SelectedCH = 1;
+        if ( SW1Value > 0){     // when SW1 clicked
+            while ( SW1Value != 0 ){}   // Wait SW1 released
+            SelectedCH = 1; 
+            LEDRotaryEncoderBlue =1;Nop();
+            LEDRotaryEncoderOrange=0;
+            OperationMode += 1;
+            if ( OperationMode > 3 ) OperationMode = 1;
         } 
-        if (SW2Value > 0){
+        if ( SW2Value > 0){     // when SW2 clicked
+            while ( SW2Value != 0 ){}   // Wait SW2 released
             SelectedCH = 2;
-        } 
-        if (SW3Value > 0){
-            SelectedCH = 3;
-        } 
-        if (SW4Value > 0){
-            SelectedCH = 4;
+            LEDRotaryEncoderOrange=1;Nop();
+            LEDRotaryEncoderBlue=0;
+            OperationMode += 1;
+            if ( OperationMode > 3 ) OperationMode = 1;
         }
-        switch (SelectedCH){
-            case 1:{
-                LEDRotaryEncoderBlue =1;Nop();
-                LEDRotaryEncoderOrange=0;
+        if ( SW3Value > 0){     // when SW3 clicked
+            while ( SW3Value != 0 ){}   // Wait SW3 released
+            SelectedCH = 3; 
+            LEDRotaryEncoderOrange=1;Nop();
+            LEDRotaryEncoderBlue=1;
+        }
+        if ( SW4Value > 0){     // when SW4 clicked
+            while ( SW4Value != 0 ){
+                if ( SW4Value > 600 ){  // Press for 3 seconds
+                    DisplayOrientation = ~DisplayOrientation;
+                    GLCD_DisplayOrientation(DisplayOrientation);
+                    GLCD_Clear(0);
+                    while ( SW4Value != 0 ){}
+                }
+            }   // Wait SW4 released
+            SelectedCH = 4; 
+        }
+        prevSelectedCH = SelectedCH;
+        
+        switch( OperationMode ){
+            case 1:{    // Select Time Axis
+                if ( OperationMode != prevOperationMode ){
+                    /* Change Sampling frequency by Rotary Encoder */
+                    rotVal = (float) TimeAxisTableIndex;
+                    rotValMag = 0.2;
+                    prev_rotVal = rotVal;
+                    GLCD_ClearCharacterArea();
+                }   
+                if(prev_rotVal != rotVal){
+                    GLCD_ClearCharacterArea();
+                    if (rotVal < 0) rotVal = 0;
+                    if (rotVal > 9) rotVal = 9;
+                    TimeAxisTableIndex = (int)rotVal;
+                    PR2 = TimeAxisTable[TimeAxisTableIndex];
+                }
+                sprintf(pString,"%s",TimeAxisTable_s[TimeAxisTableIndex]);
+                GLCD_DrawString(0, 0, pString, ColorWhite);
+                prev_rotVal = rotVal;
                 break;
             }
-            case 2:{
-                LEDRotaryEncoderOrange=1;Nop();
-                LEDRotaryEncoderBlue=0;
+            case 2:{    // Voltage Axis
+                if ( OperationMode != prevOperationMode ){
+                    /* Change Voltage Axis by Rotary Encoder */
+                    rotVal = (float) VoltageAxisTableIndex[SelectedCH-1];
+                    rotValMag = 0.2;
+                    prev_rotVal = rotVal;
+                    GLCD_ClearCharacterArea();
+                }
+                if(prev_rotVal != rotVal){
+                    GLCD_ClearCharacterArea();
+                    if (rotVal < 0) rotVal = 0;
+                    if (rotVal > 5) rotVal = 5;
+                    VoltageAxisTableIndex[SelectedCH-1] = (int)rotVal;
+                }
+                sprintf(pString,"CH%d %s",SelectedCH,VoltageAxisTable_s[SelectedCH-1][(int)rotVal]);
+                GLCD_DrawString(0, 0, pString, ColorWhite);
+                prev_rotVal = rotVal;
                 break;
             }
-            case 3:{
-                LEDRotaryEncoderOrange=1;Nop();
-                LEDRotaryEncoderBlue=1;
-                break;
-            }
-            default:{
-                
+            case 3:{    // // Voltage Offset
+                if ( OperationMode != prevOperationMode ){
+                    /* Change Voltage Offset by Rotary Encoder */
+                    rotVal = (float) VoltageOffset[SelectedCH-1];
+                    rotValMag = 0.2;
+                    prev_rotVal = rotVal;
+                    GLCD_ClearCharacterArea();
+                    sprintf(pString,"CH%d Offset",SelectedCH);
+                    GLCD_DrawString(0, 0, pString, ColorWhite);
+                }
+                VoltageOffset[SelectedCH-1] = (int)rotVal;
             }
         }
-        sprintf(pString,"%s",TimeAxisTable_s[(int)prev_rotVal]);
-        GLCD_DrawString(0, 0, pString, ColorBlack);
-        if (rotVal < 0) rotVal = 0;
-        if (rotVal > 8) rotVal = 8;
-        sprintf(pString,"%s",TimeAxisTable_s[(int)rotVal]);
-        GLCD_DrawString(0, 0, pString, ColorWhite);
-        PR2 = TimeAxisTable[(int)rotVal];
-        prev_rotVal = rotVal;
+        prevOperationMode = OperationMode;
     }
 
     return 1;

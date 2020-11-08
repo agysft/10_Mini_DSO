@@ -63,7 +63,7 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     LATB = 0x0000;
     LATC = 0x0000;
-    LATD = 0x003E;
+    LATD = 0x083E;
     LATE = 0x0000;
     LATF = 0x0000;
     LATG = 0x0000;
@@ -73,7 +73,7 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     TRISB = 0xF0FF;
     TRISC = 0x1000;
-    TRISD = 0x0F81;
+    TRISD = 0x0781;
     TRISE = 0x00FE;
     TRISF = 0x00BB;
     TRISG = 0x0040;
@@ -108,7 +108,7 @@ void PIN_MANAGER_Initialize (void)
      * Setting the Analog/Digital Configuration SFR(s)
      ***************************************************************************/
     ANSB = 0xF03F;
-    ANSD = 0xFF00;
+    ANSD = 0xF300;
     ANSE = 0x0010;
     ANSF = 0x00B8;
     ANSG = 0x0040;
@@ -121,9 +121,11 @@ void PIN_MANAGER_Initialize (void)
      ***************************************************************************/
     __builtin_write_OSCCONL(OSCCON & 0xbf); // unlock PPS
 
-    RPOR11bits.RP23R = 0x0007;    //RD2->SPI1:SDO1
-    RPOR12bits.RP24R = 0x0008;    //RD1->SPI1:SCK1OUT
     RPOR13bits.RP27R = 0x0012;    //RG9->OC1:OC1
+    RPOR12bits.RP24R = 0x0008;    //RD1->SPI1:SCK1OUT
+    RPINR18bits.U1RXR = 0x0003;    //RD10->UART1:U1RX
+    RPOR6bits.RP12R = 0x0003;    //RD11->UART1:U1TX
+    RPOR11bits.RP23R = 0x0007;    //RD2->SPI1:SDO1
 
     __builtin_write_OSCCONL(OSCCON | 0x40); // lock PPS
 }

@@ -81,6 +81,7 @@ int DisplayOrientation = 0;
 #define ColorYellow     0xffe0
 #define ColorWhite      0xffff
 #define ColorScale      0b1000010000010000  //0bRRRRRGGGGGGBBBBB
+#define ColorOrange     0b1111010011000000  //0bRRRRRGGGGGGBBBBB
 /* Attenuator ON-OFF */
 #define CH1ATT  PORTGbits.RG7   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
 #define CH2ATT  PORTGbits.RG8   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
@@ -126,29 +127,33 @@ char TimeAxisTable_s[10][11]={
      *  1V/div      4.0036
      *  2V/div      8.0072
      *  5V/div      20.018
-     *  10V/div     40.036
      */
-int VoltageAxisTableIndex[2] = {2, 2};
-float VoltageAxisTable[2][6]={
-    {1.0009, 2.0018, 4.0036, 8.0072, 20.018, 40.036},
-    {1.0009, 2.0018, 4.0036, 8.0072, 20.018, 40.036}
+int VoltageAxisTableIndex[2] = {2, 2};  // 2 = 1V/div
+float VoltageAxisTable[2][5]={
+    {1.0009, 2.0018, 4.0036, 8.0072, 20.018},
+    {1.0009, 2.0018, 4.0036, 8.0072, 20.018}
 };
-char VoltageAxisTable_s[2][6][11]={
+char VoltageAxisTable_s[2][5][11]={
     {"0.25V/div\0",
     " 0.5V/div\0",
     "   1V/div\0",
     "   2V/div\0",
-    "   5V/div\0",
-    "  10V/div\0"},
+    "   5V/div\0"},
     {"0.25V/div\0",
     " 0.5V/div\0",
     "   1V/div\0",
     "   2V/div\0",
-    "   5V/div\0",
-    "  10V/div\0"}
+    "   5V/div\0"}
 };
 int VoltageOffset[2] = {120, 24};   // Display offset CH1=120, CH2=24
 
+int TriggerLevel[2] = {50, 50};     // Trigger Level CH1,CH2
+int TriggerPosition[3] = {160, 160, 160};   // Trigger Position
+int TriggerPolarity[3] = {1, 1, 1}; // Trigger polarity 1:Positive Edge, 0:Negative Edge
+int TriggerMode[2] = {0,0}; // 0:Auto, 1:Normal Positive, 2:Normal Negative, 3:Single Positive, 4:Single Negative
+int prev_VoltageOffset; // for TRG Arrow
+float prev_VoltageAxis; // for TRG Arrow
+    
 void GLCD_COM(uint8_t acommand){
     GLCDDC = 0;     //0:command
     while( SPI1STATbits.SPITBF == true ){}
@@ -533,7 +538,7 @@ void DispWave(int CH, float WaveDiv, uint16_t WaveOffset, int DetectPosition, ui
         GLCD_LineHL(prev_prev_gx, gx, i, ColorBlack);   // clear previous waveform
         prev_prev_gx = gx;
         gx = byteWavedata[CH][i];
-        GLCD_LineHL(prev_gx, gx, i, WaveColor);    // display waveform
+        GLCD_LineHL(prev_gx, gx, i, WaveColor);    // display new waveform
         prev_gx = gx;
     }
 }
@@ -557,6 +562,31 @@ void DispScale(){
     for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 17, 3, ColorScale);
     for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 236, 3, ColorScale);
 }
+void DispTRG(int DetectPosition, float WaveDiv, uint16_t WaveOffset, int ThresholdLevel, int Rising_or_Falling_edge, uint16_t ArrowColor){
+    uint16_t arrowTop;
+    arrowTop = (uint16_t)(((float)ThresholdLevel) / WaveDiv + prev_VoltageOffset);  // tmp
+    if (arrowTop > LCD_HEIGHT-1) arrowTop = LCD_HEIGHT-1;
+    if (arrowTop < 7) arrowTop = 7;
+    if (DetectPosition < 2) DetectPosition = 2;
+    if (DetectPosition > LCD_WIDTH-2) DetectPosition = LCD_WIDTH-2;
+    GLCD_LineHL(arrowTop, arrowTop -7, DetectPosition, ColorBlack);
+    GLCD_DrawPaint(DetectPosition-1, LCD_HEIGHT-arrowTop+1, ColorBlack);
+    GLCD_DrawPaint(DetectPosition+1, LCD_HEIGHT-arrowTop+1, ColorBlack);
+    GLCD_DrawPaint(DetectPosition-2, LCD_HEIGHT-arrowTop+2, ColorBlack);
+    GLCD_DrawPaint(DetectPosition+2, LCD_HEIGHT-arrowTop+2, ColorBlack);
+    arrowTop = (uint16_t)(((float)ThresholdLevel) / WaveDiv + WaveOffset);
+    if (arrowTop > LCD_HEIGHT-1) arrowTop = LCD_HEIGHT-1;
+    if (arrowTop < 7) arrowTop = 7;
+    if (DetectPosition < 2) DetectPosition = 2;
+    if (DetectPosition > LCD_WIDTH-2) DetectPosition = LCD_WIDTH-2;
+    GLCD_LineHL(arrowTop, arrowTop -7, DetectPosition, ArrowColor);
+    GLCD_DrawPaint(DetectPosition-1, LCD_HEIGHT-arrowTop+1, ArrowColor);
+    GLCD_DrawPaint(DetectPosition+1, LCD_HEIGHT-arrowTop+1, ArrowColor);
+    GLCD_DrawPaint(DetectPosition-2, LCD_HEIGHT-arrowTop+2, ArrowColor);
+    GLCD_DrawPaint(DetectPosition+2, LCD_HEIGHT-arrowTop+2, ArrowColor);
+    prev_VoltageOffset = WaveOffset;    // tmp
+    prev_VoltageAxis = WaveDiv;         // tmp
+}
 int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hysteresis, int Rising_or_Falling_edge, int DetectionInterval){
     /*
      *  edge detect = seek rising/falling edge
@@ -565,13 +595,22 @@ int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hystere
      *      DetectPosition:  Left = 0, Center = 160, Right = 320
      *      ThresholdLevel:  +-0..+-2047
      *      Hysteresis:      noise suppress 1<
-     *      Rising_or_Falling_edge:  Rising = 1, Falling = -1
+     *      Rising_or_Falling_edge:  Rising = 1, Falling = -1, Auto = 0
      *      DetectionInterval:   interval of time axis 1..2
      *      return:  edge position 
      */
-    int i;
+    int i; long SumAll;
     if (CH1orCH2 > 2) return -1;
     CH1orCH2 -= 1;
+    SumAll = 0;
+    if (Rising_or_Falling_edge == 0){   // Set the average value to the trigger position
+        for ( i = DetectPosition; i < (LCD_WIDTH*2 +DetectPosition ); i++ ){
+            SumAll += originalWavedata[CH1orCH2][i];
+        }
+        Rising_or_Falling_edge = 1;
+        ThresholdLevel = SumAll / (LCD_WIDTH*2);
+        TriggerLevel[CH1orCH2] = ThresholdLevel; // for test
+    }
     for ( i = DetectPosition; i < (LCD_WIDTH*2 -DetectionInterval +DetectPosition ); i++ ){
         if ( (Rising_or_Falling_edge * ( originalWavedata[CH1orCH2][i + DetectionInterval] - ThresholdLevel - Hysteresis ) > 0 ) 
                 && (Rising_or_Falling_edge * ( ThresholdLevel - Hysteresis - originalWavedata[CH1orCH2][i] ) > 0 ) ) break;
@@ -691,39 +730,55 @@ int main(void)
         DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
         IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
 
-        t = DetectEdge(SelectedCH, 160, 50, 1, 1, 1);
+        //t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, TriggerPolarity[SelectedCH-1], 1);
+        t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, 0, 1); // for test 0=Auto
         DispScale();    // Display Scale
+        if (SelectedCH < 3) DispTRG(160, VoltageAxisTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]], VoltageOffset[SelectedCH-1], TriggerLevel[SelectedCH-1], 0, ColorWhite);
         DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], VoltageOffset[0], t, ColorCyan);  // display CH1 wave
-        DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltageOffset[1], t, ColorYellow);   // display CH2 wave
+        DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltageOffset[1], t, ColorOrange);   // display CH2 wave
 
         if ( SW1Value > 0){     // when SW1 clicked
-            while ( SW1Value != 0 ){}   // Wait SW1 released
-            SelectedCH = 1; 
+            SelectedCH = 1;
             LEDRotaryEncoderBlue =1;Nop();
             LEDRotaryEncoderOrange=0;
-            OperationMode += 1;
-            if ( OperationMode > 3 ) OperationMode = 1;
+            while ( SW1Value != 0 ){    // Wait SWx released
+                if ( SW1Value > 400 ){  // when pressed for 2 seconds or more
+                    OperationMode = 4;  // TRG setting mode
+                    break;              // SWxValue = 401
+                }
+            }
+            if (SW1Value == 0){         // when pressed less than for 2 seconds
+                OperationMode += 1;
+                if ( OperationMode > 3 ) OperationMode = 1;
+            }
         } 
         if ( SW2Value > 0){     // when SW2 clicked
-            while ( SW2Value != 0 ){}   // Wait SW2 released
             SelectedCH = 2;
             LEDRotaryEncoderOrange=1;Nop();
             LEDRotaryEncoderBlue=0;
-            OperationMode += 1;
-            if ( OperationMode > 3 ) OperationMode = 1;
+            while ( SW2Value != 0 ){    // Wait SWx released
+                if ( SW2Value > 400 ){  // when pressed for 2 seconds or more
+                    OperationMode = 4;  // TRG setting mode
+                    break;              // SWxValue = 401
+                }
+            }
+            if (SW2Value == 0){         // when pressed less than for 2 seconds
+                OperationMode += 1;
+                if ( OperationMode > 3 ) OperationMode = 1;
+            }
         }
         if ( SW3Value > 0){     // when SW3 clicked
-            while ( SW3Value != 0 ){}   // Wait SW3 released
             SelectedCH = 3; 
             LEDRotaryEncoderOrange=1;Nop();
             LEDRotaryEncoderBlue=1;
+            while ( SW3Value != 0 ){}   // Wait SW3 released
         }
         if ( SW4Value > 0){     // when SW4 clicked
             while ( SW4Value != 0 ){
-                if ( SW4Value > 600 ){  // Press for 3 seconds
+                if ( SW4Value > 400 ){  // Press for 2 seconds
+                    GLCD_Clear(0);
                     DisplayOrientation = ~DisplayOrientation;
                     GLCD_DisplayOrientation(DisplayOrientation);
-                    GLCD_Clear(0);
                     while ( SW4Value != 0 ){}
                 }
             }   // Wait SW4 released
@@ -731,7 +786,7 @@ int main(void)
         }
         prevSelectedCH = SelectedCH;
         
-        switch( OperationMode ){
+        if (SelectedCH < 3) switch( OperationMode ){
             case 1:{    // Select Time Axis
                 if ( OperationMode != prevOperationMode ){
                     /* Change Sampling frequency by Rotary Encoder */
@@ -763,7 +818,7 @@ int main(void)
                 if(prev_rotVal != rotVal){
                     GLCD_ClearCharacterArea();
                     if (rotVal < 0) rotVal = 0;
-                    if (rotVal > 5) rotVal = 5;
+                    if (rotVal > 4) rotVal = 4;
                     VoltageAxisTableIndex[SelectedCH-1] = (int)rotVal;
                 }
                 sprintf(pString,"CH%d %s",SelectedCH,VoltageAxisTable_s[SelectedCH-1][(int)rotVal]);
@@ -771,7 +826,7 @@ int main(void)
                 prev_rotVal = rotVal;
                 break;
             }
-            case 3:{    // // Voltage Offset
+            case 3:{    // Voltage Offset
                 if ( OperationMode != prevOperationMode ){
                     /* Change Voltage Offset by Rotary Encoder */
                     rotVal = (float) VoltageOffset[SelectedCH-1];
@@ -782,6 +837,20 @@ int main(void)
                     GLCD_DrawString(0, 0, pString, ColorWhite);
                 }
                 VoltageOffset[SelectedCH-1] = (int)rotVal;
+                break;
+            }
+            case 4:{    // for test
+                if ( OperationMode != prevOperationMode ){
+                    /* Change Voltage Axis by Rotary Encoder */
+                    rotVal = (float) VoltageAxisTableIndex[SelectedCH-1];
+                    rotValMag = 0.2;
+                    prev_rotVal = rotVal;
+                    GLCD_ClearCharacterArea();
+                }
+                GLCD_ClearCharacterArea();
+                sprintf(pString,"TRG CH%1d",SelectedCH);
+                GLCD_DrawString(0, 0, pString, ColorWhite);
+                break;
             }
         }
         prevOperationMode = OperationMode;

@@ -590,12 +590,12 @@
          <value>20</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL21" settingAlias="ADCH21" alias="AN12"/>
-         <value>12</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UMODE" settingAlias="IREN"/>
          <value>disabled</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL21" settingAlias="ADCH21" alias="AN12"/>
+         <value>12</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL21" settingAlias="ADCH21" alias="AN11"/>
@@ -742,12 +742,12 @@
          <value>19</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL31" settingAlias="ADCH31" alias="AN42"/>
-         <value>42</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="USTA" settingAlias="PERR"/>
          <value>NO_ERROR</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL31" settingAlias="ADCH31" alias="AN42"/>
+         <value>42</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL31" settingAlias="ADCH31" alias="AN43"/>
@@ -3170,16 +3170,16 @@
          <value>44</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UMODE" settingAlias="UEN"/>
+         <value>TX_RX</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL16" settingAlias="ADCH16" alias="AN6"/>
          <value>6</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL11" settingAlias="ADCH11" alias="AN47"/>
          <value>47</value>
-      </entry>
-      <entry>
-         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UMODE" settingAlias="UEN"/>
-         <value>TX_RX</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL16" settingAlias="ADCH16" alias="AN7"/>
@@ -5086,12 +5086,12 @@
          <value>disabled</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL1CONH" settingAlias="SAMC1" alias="4 tad"/>
-         <value>4</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UERI" settingAlias="flag"/>
          <value>disabled</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL1CONH" settingAlias="SAMC1" alias="4 tad"/>
+         <value>4</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL12" settingAlias="ADCH12" alias="OPA2"/>
@@ -5226,12 +5226,12 @@
          <value>10</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL2" settingAlias="ADCH2" alias="AN11"/>
-         <value>11</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UERI" settingAlias="priority"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL2" settingAlias="ADCH2" alias="AN11"/>
+         <value>11</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL2" settingAlias="ADCH2" alias="AN12"/>
@@ -6594,12 +6594,12 @@
          <value>13</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL23" settingAlias="ADCH23" alias="AN15"/>
-         <value>15</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="PDSEL" alias="9N"/>
          <value>3</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL23" settingAlias="ADCH23" alias="AN15"/>
+         <value>15</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL23" settingAlias="ADCH23" alias="AN18"/>
@@ -6682,23 +6682,23 @@
          <value/>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="PADC1" name="Channel1"/>
-         <value>1.0</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="PDSEL" alias="8E"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="PADC1" name="Channel1"/>
+         <value>1.0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="System Module" registerAlias="CONFIG2" settingAlias="OSCIOFCN"/>
          <value>ON</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL21" settingAlias="UCTMU21" alias="enabled"/>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="USTA" settingAlias="UTXBF" alias="FULL"/>
          <value>1</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="USTA" settingAlias="UTXBF" alias="FULL"/>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL21" settingAlias="UCTMU21" alias="enabled"/>
          <value>1</value>
       </entry>
       <entry>
@@ -6706,12 +6706,12 @@
          <value>disabled</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL0" settingAlias="ADCH0" alias="VBATby2"/>
-         <value>55</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="UART1" name="inputmode"/>
          <value>easysetup</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL0" settingAlias="ADCH0" alias="VBATby2"/>
+         <value>55</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL0CONL" settingAlias="SAMP0" alias="disabled"/>
@@ -7378,12 +7378,12 @@
          <value>15</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL9" settingAlias="ADCH9" alias="AN18"/>
-         <value>18</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="UART1" name="UART1_UTXIISRFunction"/>
          <value>ISR_UART1_UTXI</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL9" settingAlias="ADCH9" alias="AN18"/>
+         <value>18</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL9" settingAlias="ADCH9" alias="AN17"/>
@@ -7850,12 +7850,12 @@
          <value>49</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL0" settingAlias="ADCH0" alias="ADREF-\ADREF-"/>
-         <value>124</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="WAKE" alias="enabled"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL0" settingAlias="ADCH0" alias="ADREF-\ADREF-"/>
+         <value>124</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="OC1" name="TMR2Found"/>
@@ -9070,12 +9070,12 @@
          <value>1</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="BUFCON1" settingAlias="BUFSLP"/>
-         <value>disabled</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="LPBACK" alias="enabled"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="BUFCON1" settingAlias="BUFSLP"/>
+         <value>disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="ADTBL21" settingAlias="DIFF21"/>
@@ -9690,12 +9690,12 @@
          <value>4</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL0CONH" settingAlias="SAMC0" alias="3 tad"/>
-         <value>3</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="UART1" name="FlowControl"/>
          <value>None</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL0CONH" settingAlias="SAMC0" alias="3 tad"/>
+         <value>3</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="ADL3MSEL2" settingAlias="MSEL38"/>
@@ -11830,11 +11830,11 @@
          <value>34</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL19" settingAlias="DIFF19" alias="disabled"/>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="USTA" settingAlias="PERR" alias="NO_ERROR"/>
          <value>0</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="USTA" settingAlias="PERR" alias="NO_ERROR"/>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL19" settingAlias="DIFF19" alias="disabled"/>
          <value>0</value>
       </entry>
       <entry>
@@ -12698,12 +12698,12 @@
          <value>disabled</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL1CONH" settingAlias="SAMC1" alias="2 tad"/>
-         <value>2</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UTXI" settingAlias="flag"/>
          <value>disabled</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL1CONH" settingAlias="SAMC1" alias="2 tad"/>
+         <value>2</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL1CONH" settingAlias="SAMC1" alias="17 tad"/>
@@ -13658,12 +13658,12 @@
          <value>32000000</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL24" settingAlias="ADCH24" alias="AN3\AN2"/>
-         <value>2</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="UART1" name="Parity"/>
          <value>None</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL24" settingAlias="ADCH24" alias="AN3\AN2"/>
+         <value>2</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="Pin Module" registerAlias="CNEN4" settingAlias="CN59IE" alias="enabled"/>
@@ -14306,12 +14306,12 @@
          <value>0</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL3MSEL1" settingAlias="MSEL24" alias="disabled"/>
-         <value>0</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="UART1" name="BaudRateError"/>
          <value>-0.794</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL3MSEL1" settingAlias="MSEL24" alias="disabled"/>
+         <value>0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL15" settingAlias="ADCH15" alias="AN5\AN4"/>
@@ -15338,11 +15338,11 @@
          <value>disabled</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL3MSEL2" settingAlias="MSEL47" alias="enabled"/>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="BRGH" alias="enabled"/>
          <value>1</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="BRGH" alias="enabled"/>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL3MSEL2" settingAlias="MSEL47" alias="enabled"/>
          <value>1</value>
       </entry>
       <entry>
@@ -16758,12 +16758,12 @@
          <value>0</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL11" settingAlias="ADCH11" alias="AVSS"/>
-         <value>53</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="UARTEN" alias="disabled"/>
          <value>0</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL11" settingAlias="ADCH11" alias="AVSS"/>
+         <value>53</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="ADTBL17" settingAlias="ADCH17"/>
@@ -17006,11 +17006,11 @@
          <value>0</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL2MSEL1" settingAlias="MSEL19" alias="disabled"/>
+         <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="UART1" registerAlias="USTA"/>
          <value>0</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.RegisterKey" moduleName="UART1" registerAlias="USTA"/>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL2MSEL1" settingAlias="MSEL19" alias="disabled"/>
          <value>0</value>
       </entry>
       <entry>
@@ -17662,12 +17662,12 @@
          <value>Positive Edge</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADCON1" settingAlias="PWRLVL" alias="Low-Power mode"/>
-         <value>0</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="USTA" settingAlias="ADDEN" alias="enabled"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADCON1" settingAlias="PWRLVL" alias="Low-Power mode"/>
+         <value>0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="SPI1" registerAlias="SPISTAT" settingAlias="SISEL" alias="SPI_INT_LAST_WORD_READ"/>
@@ -17942,12 +17942,12 @@
          <value>disabled</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL0MSEL3" settingAlias="MSEL48" alias="enabled"/>
-         <value>1</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="URXI" settingAlias="context"/>
          <value>OFF</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL0MSEL3" settingAlias="MSEL48" alias="enabled"/>
+         <value>1</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="ADTH2H" settingAlias="TH4"/>
@@ -19950,12 +19950,12 @@
          <value>disabled</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL2MSEL1" settingAlias="MSEL24" alias="disabled"/>
-         <value>0</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UMODE" settingAlias="PDSEL"/>
          <value>8N</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL2MSEL1" settingAlias="MSEL24" alias="disabled"/>
+         <value>0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="System Module" registerAlias="CONFIG2" settingAlias="FCKSM" alias="CSECME"/>
@@ -20014,12 +20014,12 @@
          <value>29</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL2MSEL1" settingAlias="MSEL22" alias="enabled"/>
-         <value>1</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.CustomKey" moduleName="UART1" name="UART1_UERIISRFunction"/>
          <value>ISR_UART1_UERI</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL2MSEL1" settingAlias="MSEL22" alias="enabled"/>
+         <value>1</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="OC1" registerAlias="OCCON2" settingAlias="SYNCSEL" alias="OCTRIG1"/>
@@ -23566,12 +23566,12 @@
          <value>6</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL3CONH" settingAlias="SAMC3" alias="24 tad"/>
-         <value>24</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="RTSMD" alias="enabled"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL3CONH" settingAlias="SAMC3" alias="24 tad"/>
+         <value>24</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTH3H" settingAlias="TH8" alias="enabled"/>
@@ -24678,12 +24678,12 @@
          <value>10</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="ADTBL28" settingAlias="DIFF28"/>
-         <value>disabled</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="USTA" settingAlias="TRMT" alias="NOT_EMPTY"/>
          <value>0</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="ADTBL28" settingAlias="DIFF28"/>
+         <value>disabled</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="PADC1" registerAlias="ADL1CONH" settingAlias="SLINT1"/>
@@ -25594,10 +25594,6 @@
          <value>5</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="UMODE" settingAlias="UEN" alias="TX_RX_RTS"/>
-         <value>1</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL3CONH" settingAlias="CTMEN3" alias="enabled"/>
          <value>1</value>
       </entry>
@@ -25914,12 +25910,12 @@
          <value>19</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL15" settingAlias="ADCH15" alias="AN15"/>
-         <value>15</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UMODE" settingAlias="UARTEN"/>
          <value>enabled</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL15" settingAlias="ADCH15" alias="AN15"/>
+         <value>15</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL15" settingAlias="ADCH15" alias="AN18"/>
@@ -26614,12 +26610,12 @@
          <value>0</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL1STAT" settingAlias="ADTDLY" alias="disabled"/>
-         <value>0</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="USTA" settingAlias="TRMT"/>
          <value>EMPTY</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADL1STAT" settingAlias="ADTDLY" alias="disabled"/>
+         <value>0</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="Pin Module" registerAlias="TRISB" settingAlias="TRISB2"/>
@@ -27466,16 +27462,16 @@
          <value>1</value>
       </entry>
       <entry>
+         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UTXI" settingAlias="priority"/>
+         <value>1</value>
+      </entry>
+      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL21" settingAlias="ADCH21" alias="CTMU(Time)"/>
          <value>119</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ACCONL" settingAlias="TBLSEL" alias="ADTBL4"/>
          <value>4</value>
-      </entry>
-      <entry>
-         <key class="com.microchip.mcc.core.tokenManager.SettingKey" moduleName="UART1" registerAlias="UTXI" settingAlias="priority"/>
-         <value>1</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ACCONL" settingAlias="TBLSEL" alias="ADTBL3"/>
@@ -27758,12 +27754,12 @@
          <value>0</value>
       </entry>
       <entry>
-         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL24" settingAlias="ADCH24" alias="AN35\AN14"/>
-         <value>35</value>
-      </entry>
-      <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="UART1" registerAlias="USTA" settingAlias="TRMT" alias="EMPTY"/>
          <value>1</value>
+      </entry>
+      <entry>
+         <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL24" settingAlias="ADCH24" alias="AN35\AN14"/>
+         <value>35</value>
       </entry>
       <entry>
          <key class="com.microchip.mcc.core.tokenManager.OptionKey" moduleName="PADC1" registerAlias="ADTBL14" settingAlias="ADCH14" alias="AN48\AN14"/>

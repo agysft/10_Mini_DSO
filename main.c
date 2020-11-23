@@ -82,9 +82,9 @@ int DisplayOrientation = 0;
 #define ColorWhite      0xffff
 #define ColorScale      0b1000010000010000  //0bRRRRRGGGGGGBBBBB
 #define ColorOrange     0b1111010011000000  //0bRRRRRGGGGGGBBBBB
-/* Attenuator ON-OFF */
-#define CH1ATT  PORTGbits.RG7   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
-#define CH2ATT  PORTGbits.RG8   // 0=ATT-ON(15V), 1=ATT-OFF(1.25V)
+/* amplifier ON-OFF */
+#define CH1AMP  PORTGbits.RG7   // 0=AMP-ON(x10), 1=AMP-OFF(x1)
+#define CH2AMP  PORTGbits.RG8   // 0=AMP-ON(x10), 1=AMP-OFF(x1)
 
 /* Rotary Encoder */
 int rotData, rotDir, swPos; float rotVal; float rotValMag = 0.5;
@@ -122,28 +122,25 @@ char TimeAxisTable_s[10][11]={
     " 10ms/div\0"};
 /* Voltage axis setting table */
     /*                
-     *  0.25V/div	1.0009
-     *  0.5V/div	2.0018
-     *  1V/div      4.0036
-     *  2V/div      8.0072
-     *  5V/div      20.018
+     *  0.1V/div    4.0036  AMPx10
+     *  0.2V/div	8.0072  AMPx10
+     *  0.5V/div	2.0018  AMPx1
+     *  1V/div      4.0036  AMPx1
+     *  2V/div      8.0072  AMPx1
+     *  5V/div      20.018  AMPx1
      */
-int VoltageAxisTableIndex[2] = {2, 2};  // 2 = 1V/div
-float VoltageAxisTable[2][5]={
-    {1.0009, 2.0018, 4.0036, 8.0072, 20.018},
-    {1.0009, 2.0018, 4.0036, 8.0072, 20.018}
+int VoltageAxisTableIndex[2] = {4, 4};  // 4 = 1V/div
+float VoltageAxisTable[2][7]={
+    {2.0018, 4.0036, 8.0072, 2.0018, 4.0036, 8.0072, 20.018},
+    {2.0018, 4.0036, 8.0072, 2.0018, 4.0036, 8.0072, 20.018}
 };
-char VoltageAxisTable_s[2][5][11]={
-    {"0.25V/div\0",
-    " 0.5V/div\0",
-    "   1V/div\0",
-    "   2V/div\0",
-    "   5V/div\0"},
-    {"0.25V/div\0",
-    " 0.5V/div\0",
-    "   1V/div\0",
-    "   2V/div\0",
-    "   5V/div\0"}
+int VoltageAxisAmpTable[2][7]={
+    {0,0,0,1,1,1,1},
+    {0,0,0,1,1,1,1}
+};
+char VoltageAxisTable_s[2][7][11]={
+    {" 50mV/div\0"," 0.1V/div\0"," 0.2V/div\0"," 0.5V/div\0","   1V/div\0","   2V/div\0","   5V/div\0"},
+    {" 50mV/div\0"," 0.1V/div\0"," 0.2V/div\0"," 0.5V/div\0","   1V/div\0","   2V/div\0","   5V/div\0"}
 };
 int VoltageOffset[2] = {120, 24};   // Display offset CH1=120, CH2=24
 
@@ -698,9 +695,9 @@ int main(void)
 
     T2CONbits.TON = 0;                  // stop Timer2
 
-    /* Select ATT 0/1 = 15V/1.5V */
-    CH1ATT = 1; Nop();
-    CH2ATT = 1;
+    /* Select AMP 0 / 1 = x10 / x1 */
+    CH1AMP = 1; Nop();
+    CH2AMP = 1;
 
     /* UART */
     printf("SYSTEM Initialized\n");
@@ -818,8 +815,13 @@ int main(void)
                 if(prev_rotVal != rotVal){
                     GLCD_ClearCharacterArea();
                     if (rotVal < 0) rotVal = 0;
-                    if (rotVal > 4) rotVal = 4;
+                    if (rotVal > 6) rotVal = 6;
                     VoltageAxisTableIndex[SelectedCH-1] = (int)rotVal;
+                    if(SelectedCH==1){
+                        CH1AMP = VoltageAxisAmpTable[0][(int)rotVal];
+                    } else {
+                        CH2AMP = VoltageAxisAmpTable[1][(int)rotVal];
+                    }
                 }
                 sprintf(pString,"CH%d %s",SelectedCH,VoltageAxisTable_s[SelectedCH-1][(int)rotVal]);
                 GLCD_DrawString(0, 0, pString, ColorWhite);

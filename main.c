@@ -107,19 +107,21 @@ int SWREValue = 0, SW1Value = 0, SW2Value = 0, SW3Value = 0, SW4Value = 0;
      *  5ms/div     1249	0x4E1
      *  10ms/div	2499	0x9C3
      */
-uint8_t TimeAxisTableIndex = 2;
-uint16_t TimeAxisTable[]={3, 4, 9, 0x18, 0x31, 0x7c, 0xf9, 0x1f3, 0x4e1, 0x9c3};
+uint8_t TimeAxisTableIndex = 5;
+uint16_t TimeAxisTable[]={0x9c3, 0x4e1, 0x1f3, 0xf9, 0x7c, 0x31, 0x18, 9, 4, 3};
 char TimeAxisTable_s[10][11]={
-    " 16us/div\0",
-    " 20us/div\0",
-    " 40us/div\0",
-    "100us/div\0",
-    "200us/div\0",
-    "500us/div\0",
-    "  1ms/div\0",
-    "  2ms/div\0",
+    " 10ms/div\0",
     "  5ms/div\0",
-    " 10ms/div\0"};
+    "  2ms/div\0",
+    "  1ms/div\0",
+    "500us/div\0",
+    "200us/div\0",
+    "100us/div\0",
+    " 40us/div\0",
+    " 20us/div\0",
+    " 16us/div\0",
+    "  5ms/div\0"
+};
 /* Voltage axis setting table */
     /*                
      *  0.1V/div    4.0036  AMPx10
@@ -129,20 +131,21 @@ char TimeAxisTable_s[10][11]={
      *  2V/div      8.0072  AMPx1
      *  5V/div      20.018  AMPx1
      */
-int VoltageAxisTableIndex[2] = {4, 4};  // 4 = 1V/div
+int VoltageAxisTableIndex[2] = {2, 2};  // 2 = 1V/div
 float VoltageAxisTable[2][7]={
-    {2.0018, 4.0036, 8.0072, 2.0018, 4.0036, 8.0072, 20.018},
-    {2.0018, 4.0036, 8.0072, 2.0018, 4.0036, 8.0072, 20.018}
+    {19.3084, 7.7234, 3.8617, 1.9308, 8.4957, 4.2479, 2.1239},
+    {19.3084, 7.7234, 3.8617, 1.9308, 8.4957, 4.2479, 2.1239}
 };
 int VoltageAxisAmpTable[2][7]={
-    {0,0,0,1,1,1,1},
-    {0,0,0,1,1,1,1}
+    {1,1,1,1,0,0,0},
+    {1,1,1,1,0,0,0}
 };
 char VoltageAxisTable_s[2][7][11]={
-    {" 50mV/div\0"," 0.1V/div\0"," 0.2V/div\0"," 0.5V/div\0","   1V/div\0","   2V/div\0","   5V/div\0"},
-    {" 50mV/div\0"," 0.1V/div\0"," 0.2V/div\0"," 0.5V/div\0","   1V/div\0","   2V/div\0","   5V/div\0"}
+    {"   5V/div\0","   2V/div\0","   1V/div\0"," 0.5V/div\0"," 0.2V/div\0"," 0.1V/div\0"," 50mV/div\0"},
+    {"   5V/div\0","   2V/div\0","   1V/div\0"," 0.5V/div\0"," 0.2V/div\0"," 0.1V/div\0"," 50mV/div\0"}
 };
 int VoltageOffset[2] = {120, 24};   // Display offset CH1=120, CH2=24
+float VoltageOffsetAmp[2] ={11.6, -14.8}; // Measured offset voltage value (mV) at x10 gain of OPAMP 
 
 int TriggerLevel[2] = {50, 50};     // Trigger Level CH1,CH2
 int TriggerPosition[3] = {160, 160, 160};   // Trigger Position
@@ -629,6 +632,7 @@ int main(void)
     float prev_rotVal;
     int SelectedCH = 1; int prevSelectedCH = 1; 
     int OperationMode = 1; int prevOperationMode = 1;
+    int tmpOffset;
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
@@ -731,7 +735,25 @@ int main(void)
         t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, 0, 1); // for test 0=Auto
         DispScale();    // Display Scale
         if (SelectedCH < 3) DispTRG(160, VoltageAxisTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]], VoltageOffset[SelectedCH-1], TriggerLevel[SelectedCH-1], 0, ColorWhite);
-        DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], VoltageOffset[0], t, ColorCyan);  // display CH1 wave
+        /*
+         * Test CH1 Offset cancel
+         */
+        /*if (VoltageAxisAmpTable[0][VoltageAxisTableIndex[0]] == 0){
+            tmpOffset = VoltageOffset[0]-(int)( (VoltageOffsetAmp[0]/1000) * 1366.244 / VoltageAxisTable[0][VoltageAxisTableIndex[0]] );
+        } else {
+            tmpOffset = VoltageOffset[0]-(int)( (VoltageOffsetAmp[0]/1000)/10 * 1366.244 / VoltageAxisTable[0][VoltageAxisTableIndex[0]] );
+        }*/
+        tmpOffset =VoltageOffset[0];
+        DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], tmpOffset, t, ColorCyan);  // display CH1 wave
+        /*
+         * Test CH2 Offset cancel
+         */
+        /*if (VoltageAxisAmpTable[1][VoltageAxisTableIndex[1]] == 0){
+            tmpOffset = VoltageOffset[1]-(int)( (VoltageOffsetAmp[1]/1000) * 1366.244 / VoltageAxisTable[1][VoltageAxisTableIndex[1]] );
+        } else {
+            tmpOffset = VoltageOffset[1]-(int)( (VoltageOffsetAmp[1]/1000)/10 * 1366.244 / VoltageAxisTable[1][VoltageAxisTableIndex[1]] );
+        }*/
+        tmpOffset =VoltageOffset[0];
         DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltageOffset[1], t, ColorOrange);   // display CH2 wave
 
         if ( SW1Value > 0){     // when SW1 clicked

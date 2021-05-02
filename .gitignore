@@ -3,6 +3,7 @@
 
 
 # MPLAB X project
+.generated_files/
 build/
 debug/
 dist/

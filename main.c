@@ -144,14 +144,25 @@ char VoltageAxisTable_s[2][7][11]={
     {"   5V/div\0","   2V/div\0","   1V/div\0"," 0.5V/div\0"," 0.2V/div\0"," 0.1V/div\0"," 50mV/div\0"},
     {"   5V/div\0","   2V/div\0","   1V/div\0"," 0.5V/div\0"," 0.2V/div\0"," 0.1V/div\0"," 50mV/div\0"}
 };
-int VoltageOffset[2] = {120, 24};   // Display offset CH1=120, CH2=24
+int VoltagePos[2] = {120, 24};   // Display Pos CH1=120, CH2=24
 float VoltageOffsetAmp[2] ={11.6, -14.8}; // Measured offset voltage value (mV) at x10 gain of OPAMP 
-
+int VoltageAxisAmpOffsetTable[2][7]={
+    {0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0}
+};
 int TriggerLevel[2] = {50, 50};     // Trigger Level CH1,CH2
 int TriggerPosition[3] = {160, 160, 160};   // Trigger Position
 int TriggerPolarity[3] = {1, 1, 1}; // Trigger polarity 1:Positive Edge, 0:Negative Edge
 int TriggerMode[2] = {0,0}; // 0:Auto, 1:Normal Positive, 2:Normal Negative, 3:Single Positive, 4:Single Negative
-int prev_VoltageOffset; // for TRG Arrow
+char TriggerModeTable[5][11] ={
+    "0:Auto    \0",
+    "1:Normal P\0",
+    "2:Normal N\0",
+    "3:Single P\0",
+    "4:Single N\0"
+};
+int TriggerModeEdgeTable[5] = {0,1,-1,1,-1}; // 0:Auto=0, 1:Normal Positive=1, 2:Normal Negative=-1, 3:Single Positive=1, 4:Single Negative=-1
+int prev_VoltagePos; // for TRG Arrow
 float prev_VoltageAxis; // for TRG Arrow
     
 void GLCD_COM(uint8_t acommand){
@@ -518,14 +529,14 @@ void TMR5_int(){
             return;
     }
 }
-void DispWave(int CH, float WaveDiv, uint16_t WaveOffset, int DetectPosition, uint16_t WaveColor){
+void DispWave(int CH, float WaveDiv, uint16_t WavePos, int DetectPosition, uint16_t WaveColor){
     int i, tempData;
     uint16_t gx, prev_gx, prev_prev_gx;
 
     // prepare data for display
     for (i=0;i<LCD_WIDTH;i++){
         prev_byteWavedata[CH][i] = byteWavedata[CH][i];
-        tempData = originalWavedata[CH][i+DetectPosition] / WaveDiv + WaveOffset;
+        tempData = originalWavedata[CH][i+DetectPosition] / WaveDiv + WavePos;
         if (tempData > 239) tempData = 239;
         if (tempData < 0) tempData = 0;
         byteWavedata[CH][i] = (uint8_t)(tempData);  //0..4095 -> 0..240
@@ -562,9 +573,9 @@ void DispScale(){
     for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 17, 3, ColorScale);
     for ( x = 1; x < 20; x++) GLCD_LineVrt( x*16, 236, 3, ColorScale);
 }
-void DispTRG(int DetectPosition, float WaveDiv, uint16_t WaveOffset, int ThresholdLevel, int Rising_or_Falling_edge, uint16_t ArrowColor){
+void DispTRG(int DetectPosition, float WaveDiv, uint16_t WavePos, int ThresholdLevel, int Rising_or_Falling_edge, uint16_t ArrowColor){
     uint16_t arrowTop;
-    arrowTop = (uint16_t)(((float)ThresholdLevel) / WaveDiv + prev_VoltageOffset);  // tmp
+    arrowTop = (uint16_t)(((float)ThresholdLevel) / WaveDiv + prev_VoltagePos);  // tmp
     if (arrowTop > LCD_HEIGHT-1) arrowTop = LCD_HEIGHT-1;
     if (arrowTop < 7) arrowTop = 7;
     if (DetectPosition < 2) DetectPosition = 2;
@@ -574,7 +585,7 @@ void DispTRG(int DetectPosition, float WaveDiv, uint16_t WaveOffset, int Thresho
     GLCD_DrawPaint(DetectPosition+1, LCD_HEIGHT-arrowTop+1, ColorBlack);
     GLCD_DrawPaint(DetectPosition-2, LCD_HEIGHT-arrowTop+2, ColorBlack);
     GLCD_DrawPaint(DetectPosition+2, LCD_HEIGHT-arrowTop+2, ColorBlack);
-    arrowTop = (uint16_t)(((float)ThresholdLevel) / WaveDiv + WaveOffset);
+    arrowTop = (uint16_t)(((float)ThresholdLevel) / WaveDiv + WavePos);
     if (arrowTop > LCD_HEIGHT-1) arrowTop = LCD_HEIGHT-1;
     if (arrowTop < 7) arrowTop = 7;
     if (DetectPosition < 2) DetectPosition = 2;
@@ -584,7 +595,7 @@ void DispTRG(int DetectPosition, float WaveDiv, uint16_t WaveOffset, int Thresho
     GLCD_DrawPaint(DetectPosition+1, LCD_HEIGHT-arrowTop+1, ArrowColor);
     GLCD_DrawPaint(DetectPosition-2, LCD_HEIGHT-arrowTop+2, ArrowColor);
     GLCD_DrawPaint(DetectPosition+2, LCD_HEIGHT-arrowTop+2, ArrowColor);
-    prev_VoltageOffset = WaveOffset;    // tmp
+    prev_VoltagePos = WavePos;    // tmp
     prev_VoltageAxis = WaveDiv;         // tmp
 }
 int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hysteresis, int Rising_or_Falling_edge, int DetectionInterval){
@@ -616,7 +627,7 @@ int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hystere
                 && (Rising_or_Falling_edge * ( ThresholdLevel - Hysteresis - originalWavedata[CH1orCH2][i] ) > 0 ) ) break;
     }
     if ( i > LCD_WIDTH*2 ) {
-        i = DetectPosition;
+        i = 0;//i = DetectPosition;
     } else {
         i -= DetectPosition;
     }
@@ -630,9 +641,10 @@ int main(void)
     int t;
     char pString[32]="Hello World !";// font16.h 29char/line
     float prev_rotVal;
+    int prev_SWREValue = 0;
     int SelectedCH = 1; int prevSelectedCH = 1; 
     int OperationMode = 1; int prevOperationMode = 1;
-    int tmpOffset;
+    int SingleShotTriggered = 0;  //0:waiting for a trigger, 1:Triggered
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
@@ -714,50 +726,46 @@ int main(void)
     while (1)
     {
         // Add your application code
-        /* Capture two waves */
-        IEC1bits.T5IE = false;  // disable TMR5 interrupt; stop detection of the rotary encoder
-        ADCON1bits.ADON = 1;    // ADC Enable
-        TMR2 = 0;               // reset Timer2
-        ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
-        T2CONbits.TON = 1;		// start Timer2 = start ADC
-        IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
-        IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
-        DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
-        DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
-        while( ( !IFS0bits.DMA0IF ) | ( !IFS0bits.DMA1IF ) );	// Wait Max_Size sampling
-        IFS0bits.DMA0IF = 0;	// Clear DMA0 Interrupt Flag
-        IFS0bits.DMA1IF = 0;	// Clear DMA1 Interrupt Flag
-        DMACH0bits.CHEN = 0;    // DMA0 Channel Disable & Stop
-        DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
-        IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
-
+        if (SingleShotTriggered == 0){
+            LED1 = 1;
+            /* Capture two waves */
+            IEC1bits.T5IE = false;  // disable TMR5 interrupt; stop detection of the rotary encoder
+            ADCON1bits.ADON = 1;    // ADC Enable
+            TMR2 = 0;               // reset Timer2
+            ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
+            T2CONbits.TON = 1;		// start Timer2 = start ADC
+            IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
+            IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
+            DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
+            DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
+            while( ( !IFS0bits.DMA0IF ) | ( !IFS0bits.DMA1IF ) );	// Wait Max_Size sampling
+            IFS0bits.DMA0IF = 0;	// Clear DMA0 Interrupt Flag
+            IFS0bits.DMA1IF = 0;	// Clear DMA1 Interrupt Flag
+            DMACH0bits.CHEN = 0;    // DMA0 Channel Disable & Stop
+            DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
+            IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
+            LED1 = 0;
+        }
+        
         //t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, TriggerPolarity[SelectedCH-1], 1);
-        t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, 0, 1); // for test 0=Auto
+        t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, TriggerModeEdgeTable[TriggerMode[SelectedCH-1]], 1); // for test 0=Auto
         DispScale();    // Display Scale
-        if (SelectedCH < 3) DispTRG(160, VoltageAxisTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]], VoltageOffset[SelectedCH-1], TriggerLevel[SelectedCH-1], 0, ColorWhite);
-        /*
-         * Test CH1 Offset cancel
-         */
-        /*if (VoltageAxisAmpTable[0][VoltageAxisTableIndex[0]] == 0){
-            tmpOffset = VoltageOffset[0]-(int)( (VoltageOffsetAmp[0]/1000) * 1366.244 / VoltageAxisTable[0][VoltageAxisTableIndex[0]] );
-        } else {
-            tmpOffset = VoltageOffset[0]-(int)( (VoltageOffsetAmp[0]/1000)/10 * 1366.244 / VoltageAxisTable[0][VoltageAxisTableIndex[0]] );
-        }*/
-        tmpOffset =VoltageOffset[0];
-        DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], tmpOffset, t, ColorCyan);  // display CH1 wave
-        /*
-         * Test CH2 Offset cancel
-         */
-        /*if (VoltageAxisAmpTable[1][VoltageAxisTableIndex[1]] == 0){
-            tmpOffset = VoltageOffset[1]-(int)( (VoltageOffsetAmp[1]/1000) * 1366.244 / VoltageAxisTable[1][VoltageAxisTableIndex[1]] );
-        } else {
-            tmpOffset = VoltageOffset[1]-(int)( (VoltageOffsetAmp[1]/1000)/10 * 1366.244 / VoltageAxisTable[1][VoltageAxisTableIndex[1]] );
-        }*/
-        tmpOffset =VoltageOffset[0];
-        DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltageOffset[1], t, ColorOrange);   // display CH2 wave
+        if (SelectedCH < 3) DispTRG(TriggerPosition[SelectedCH-1], VoltageAxisTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]], VoltagePos[SelectedCH-1], TriggerLevel[SelectedCH-1], 0, ColorWhite);
+        if ((t != 0)&&(SingleShotTriggered==0)) {
+
+            DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], VoltagePos[0], t, ColorCyan);  // display CH1 wave
+            DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltagePos[1], t, ColorOrange);   // display CH2 wave
+            if ((TriggerMode[SelectedCH-1] == 3) || (TriggerMode[SelectedCH-1] == 4)){  // Single shot
+                SingleShotTriggered = 1;
+                GLCD_ClearCharacterArea();
+                sprintf(pString,"Triggered !          ");
+                GLCD_DrawString(0, 0, pString, ColorWhite);
+            }
+        }
 
         if ( SW1Value > 0){     // when SW1 clicked
             SelectedCH = 1;
+            SingleShotTriggered = 0;
             LEDRotaryEncoderBlue =1;Nop();
             LEDRotaryEncoderOrange=0;
             while ( SW1Value != 0 ){    // Wait SWx released
@@ -773,6 +781,7 @@ int main(void)
         } 
         if ( SW2Value > 0){     // when SW2 clicked
             SelectedCH = 2;
+            SingleShotTriggered = 0;
             LEDRotaryEncoderOrange=1;Nop();
             LEDRotaryEncoderBlue=0;
             while ( SW2Value != 0 ){    // Wait SWx released
@@ -788,20 +797,29 @@ int main(void)
         }
         if ( SW3Value > 0){     // when SW3 clicked
             SelectedCH = 3; 
+            SingleShotTriggered = 0;
             LEDRotaryEncoderOrange=1;Nop();
             LEDRotaryEncoderBlue=1;
             while ( SW3Value != 0 ){}   // Wait SW3 released
         }
         if ( SW4Value > 0){     // when SW4 clicked
+            if ((TriggerMode[SelectedCH-1] == 3) | (TriggerMode[SelectedCH-1] == 4)){  // Single shot
+                OperationMode = 8;
+                SingleShotTriggered = 0;
+                GLCD_ClearCharacterArea();
+                sprintf(pString,"Waiting for a trigger");
+                GLCD_DrawString(0, 0, pString, ColorWhite);
+            }
             while ( SW4Value != 0 ){
                 if ( SW4Value > 400 ){  // Press for 2 seconds
                     GLCD_Clear(0);
                     DisplayOrientation = ~DisplayOrientation;
                     GLCD_DisplayOrientation(DisplayOrientation);
                     while ( SW4Value != 0 ){}
+                    //break;
                 }
             }   // Wait SW4 released
-            SelectedCH = 4; 
+            //SelectedCH = 4; 
         }
         prevSelectedCH = SelectedCH;
         
@@ -850,30 +868,108 @@ int main(void)
                 prev_rotVal = rotVal;
                 break;
             }
-            case 3:{    // Voltage Offset
+            case 3:{    // Voltage Pos
                 if ( OperationMode != prevOperationMode ){
-                    /* Change Voltage Offset by Rotary Encoder */
-                    rotVal = (float) VoltageOffset[SelectedCH-1];
+                    /* Change Voltage Pos by Rotary Encoder */
+                    rotVal = (float) VoltagePos[SelectedCH-1];
                     rotValMag = 0.2;
                     prev_rotVal = rotVal;
                     GLCD_ClearCharacterArea();
-                    sprintf(pString,"CH%d Offset",SelectedCH);
+                    sprintf(pString,"CH%d Pos",SelectedCH);
                     GLCD_DrawString(0, 0, pString, ColorWhite);
                 }
-                VoltageOffset[SelectedCH-1] = (int)rotVal;
+                VoltagePos[SelectedCH-1] = (int)rotVal;
+                // push center button of Rotary Encoder
+                //if (prev_SWREValue != SWREValue){
+                if (SWREValue > 100){
+                    OperationMode = 7;
+                    SWREValue =0;
+                }
                 break;
             }
-            case 4:{    // for test
+            case 4:{    // Set Trigger Mode
                 if ( OperationMode != prevOperationMode ){
-                    /* Change Voltage Axis by Rotary Encoder */
-                    rotVal = (float) VoltageAxisTableIndex[SelectedCH-1];
+                    /* Change TRG MODE by Rotary Encoder */
+                    rotVal = (float)TriggerMode[SelectedCH-1];
                     rotValMag = 0.2;
                     prev_rotVal = rotVal;
                     GLCD_ClearCharacterArea();
+                    sprintf(pString,"TRG CH%1d ", SelectedCH);
+                    GLCD_DrawString(0, 0, pString, ColorWhite);
+                    GLCD_DrawString(96, 0, TriggerModeTable[(int)rotVal], ColorWhite);
                 }
+                if(prev_rotVal != rotVal){
+                    GLCD_ClearCharacterArea();
+                    if (rotVal < 0) rotVal = 0;
+                    if (rotVal > 4) rotVal = 4;
+                    TriggerMode[SelectedCH-1] = (int)rotVal;
+                    sprintf(pString,"TRG CH%1d ", SelectedCH);
+                    GLCD_DrawString(0, 0, pString, ColorWhite);
+                    GLCD_DrawString(96, 0, TriggerModeTable[(int)rotVal], ColorWhite);
+                }
+                // push center button of Rotary Encoder
+                if (prev_SWREValue != SWREValue){
+                    OperationMode = 5;
+                    // set Trigger Level to rotVal
+                    rotVal = (float)TriggerLevel[SelectedCH-1];
+                    rotValMag = 0.2;
+                    prev_rotVal = rotVal;
+                    //GLCD_ClearCharacterArea();
+                    sprintf(pString,"L%d", (int)rotVal);
+                    GLCD_DrawString(220, 0, pString, ColorWhite);                    
+                }
+                prev_SWREValue = SWREValue;
+                prev_rotVal = rotVal;
+                break;
+            }
+            case 5:{    // Set Trigger Level
+                //GLCD_ClearCharacterArea();
+                sprintf(pString,"L%d", (int)prev_rotVal);
+                GLCD_DrawString(220, 0, pString, ColorBlack);                    
+                sprintf(pString,"L%d", (int)rotVal);
+                GLCD_DrawString(220, 0, pString, ColorWhite);                    
+                prev_rotVal = rotVal;
+                TriggerLevel[SelectedCH-1] = (int)rotVal;
+                break;
+            }
+            case 7:{    // Auto cancel AMP Offset
                 GLCD_ClearCharacterArea();
-                sprintf(pString,"TRG CH%1d",SelectedCH);
-                GLCD_DrawString(0, 0, pString, ColorWhite);
+                if (SWREValue > 100){
+                    switch (VoltageAxisTableIndex[SelectedCH-1]){
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:{
+                            VoltageAxisAmpOffsetTable[SelectedCH-1][0]= TriggerLevel[SelectedCH-1];
+                            VoltageAxisAmpOffsetTable[SelectedCH-1][1]= TriggerLevel[SelectedCH-1];
+                            VoltageAxisAmpOffsetTable[SelectedCH-1][2]= TriggerLevel[SelectedCH-1];
+                            VoltageAxisAmpOffsetTable[SelectedCH-1][3]= TriggerLevel[SelectedCH-1];
+                            break;
+                        }
+                        case 4:
+                        case 5:
+                        case 6:{
+                            VoltageAxisAmpOffsetTable[SelectedCH-1][4]= TriggerLevel[SelectedCH-1];
+                            VoltageAxisAmpOffsetTable[SelectedCH-1][5]= TriggerLevel[SelectedCH-1];
+                            VoltageAxisAmpOffsetTable[SelectedCH-1][6]= TriggerLevel[SelectedCH-1];
+                            break;
+                        }
+                    }
+                    //VoltageAxisAmpOffsetTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]]= TriggerLevel[SelectedCH-1];
+                    sprintf(pString,"Canceled Amp Offset %d", VoltageAxisAmpOffsetTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]]);
+                    GLCD_DrawString(0, 0, pString, ColorWhite);
+                    OperationMode = 3;
+                    SWREValue = 0;
+                } else {
+                    sprintf(pString,"Current Amp Offset %d", TriggerLevel[SelectedCH-1]);
+                    GLCD_DrawString(0, 0, pString, ColorWhite);
+                }
+                break;
+            }
+            case 8:{    // Single shot trigger mode
+                if ( OperationMode != prevOperationMode ){
+
+                }
                 break;
             }
         }

@@ -819,7 +819,6 @@ int main(void)
                     //break;
                 }
             }   // Wait SW4 released
-            //SelectedCH = 4; 
         }
         prevSelectedCH = SelectedCH;
         

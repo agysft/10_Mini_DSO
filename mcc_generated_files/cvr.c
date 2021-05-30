@@ -1,18 +1,18 @@
-/**
-  System Interrupts Generated Driver File 
 
-  @Company:
+/**
+  CVR Generated Driver File 
+
+  @Company
     Microchip Technology Inc.
 
-  @File Name:
-    interrupt_manager.h
+  @File Name
+    cvr.c
 
-  @Summary:
-    This is the generated driver implementation file for setting up the
-    interrupts using PIC24 / dsPIC33 / PIC32MM MCUs
+  @Summary
+    This is the generated driver implementation file for the CVR driver using PIC24 / dsPIC33 / PIC32MM MCUs
 
-  @Description:
-    This source file provides implementations for PIC24 / dsPIC33 / PIC32MM MCUs interrupts.
+  @Description
+    This header file provides implementations for driver APIs for CVR. 
     Generation Information : 
         Product Revision  :  PIC24 / dsPIC33 / PIC32MM MCUs - 1.169.0
         Device            :  PIC24FJ64GC006
@@ -20,6 +20,7 @@
         Compiler          :  XC16 v1.50
         MPLAB             :  MPLAB X v5.40
 */
+
 /*
     (c) 2020 Microchip Technology Inc. and its subsidiaries. You may use this
     software and any derivatives exclusively with Microchip products.
@@ -43,32 +44,23 @@
 */
 
 /**
-    Section: Includes
+  Section: Included Files
 */
-#include <xc.h>
+
+#include "cvr.h"
 
 /**
-    void INTERRUPT_Initialize (void)
+  Section: Driver Interface
 */
-void INTERRUPT_Initialize (void)
-{
-    //    UERI: U1E - UART1 Error
-    //    Priority: 2
-        IPC16bits.U1ERIP = 2;
-    //    UTXI: U1TX - UART1 Transmitter
-    //    Priority: 2
-        IPC3bits.U1TXIP = 2;
-    //    URXI: U1RX - UART1 Receiver
-    //    Priority: 2
-        IPC2bits.U1RXIP = 2;
-    //    CMI: Comp - Comparator
-    //    Priority: 1
-        IPC4bits.CMIP = 1;
-    //    INT0I: INT0 - External Interrupt 0
-    //    Priority: 2
-        IPC0bits.INT0IP = 2;
-    //    TI: T5 - Timer5
-    //    Priority: 2
-        IPC7bits.T5IP = 2;
 
+void CVR_Initialize(void)
+{    
+    // CVREN Powered On; CVREFP CVR; CVRSS AVDD ? AVSS; CVREFM Band gap voltage; CVROE disabled; CVR 24;     
+    CVRCON = 0x98;
+    // VBG2EN disabled;     
+    ANCFG |= 0x00;
 }
+
+/**
+  End of File
+*/

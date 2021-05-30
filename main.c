@@ -20,6 +20,9 @@
         MPLAB 	          :  MPLAB X v5.40
 */
 
+#include <p24FJ64GC006.h>
+
+
 /*
     (c) 2020 Microchip Technology Inc. and its subsidiaries. You may use this
     software and any derivatives exclusively with Microchip products.
@@ -119,8 +122,7 @@ char TimeAxisTable_s[10][11]={
     "100us/div\0",
     " 40us/div\0",
     " 20us/div\0",
-    " 16us/div\0",
-    "  5ms/div\0"
+    " 16us/div\0"
 };
 /* Voltage axis setting table */
     /*                
@@ -150,10 +152,10 @@ int VoltageAxisAmpOffsetTable[2][7]={
     {0, 0, 0, 0, 0, 0, 0},
     {0, 0, 0, 0, 0, 0, 0}
 };
-int TriggerLevel[2] = {50, 50};     // Trigger Level CH1,CH2
+int TriggerLevel[3] = {50, 50, 24};     // Trigger Level CH1,CH2
 int TriggerPosition[3] = {160, 160, 160};   // Trigger Position
 int TriggerPolarity[3] = {1, 1, 1}; // Trigger polarity 1:Positive Edge, 0:Negative Edge
-int TriggerMode[2] = {0,0}; // 0:Auto, 1:Normal Positive, 2:Normal Negative, 3:Single Positive, 4:Single Negative
+int TriggerMode[3] = {0, 0, 1}; // 0:Auto, 1:Normal Positive, 2:Normal Negative, 3:Single Positive, 4:Single Negative
 char TriggerModeTable[5][11] ={
     "0:Auto    \0",
     "1:Normal P\0",
@@ -162,9 +164,14 @@ char TriggerModeTable[5][11] ={
     "4:Single N\0"
 };
 int TriggerModeEdgeTable[5] = {0,1,-1,1,-1}; // 0:Auto=0, 1:Normal Positive=1, 2:Normal Negative=-1, 3:Single Positive=1, 4:Single Negative=-1
+int SingleShotTriggered = 0;  //0:waiting for a trigger, 1:Triggered
+int InitFlug = 0;
 int prev_VoltagePos; // for TRG Arrow
 float prev_VoltageAxis; // for TRG Arrow
-    
+int waveform_is_captured = 0;
+uint16_t DMACNT0_Copy, DMACNT1_Copy;
+
+
 void GLCD_COM(uint8_t acommand){
     GLCDDC = 0;     //0:command
     while( SPI1STATbits.SPITBF == true ){}
@@ -598,6 +605,14 @@ void DispTRG(int DetectPosition, float WaveDiv, uint16_t WavePos, int ThresholdL
     prev_VoltagePos = WavePos;    // tmp
     prev_VoltageAxis = WaveDiv;         // tmp
 }
+void CancelAmpOffset(int CH1orCH2){
+    int i;
+    
+    CH1orCH2 -= 1;
+    for ( i = 0; i < ( LCD_WIDTH*3 ); i++ ){
+        originalWavedata[CH1orCH2][i] -= VoltageAxisAmpOffsetTable[CH1orCH2][VoltageAxisTableIndex[CH1orCH2]];
+    }
+}
 int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hysteresis, int Rising_or_Falling_edge, int DetectionInterval){
     /*
      *  edge detect = seek rising/falling edge
@@ -633,6 +648,51 @@ int DetectEdge(int CH1orCH2, int DetectPosition, int ThresholdLevel, int Hystere
     }
     return i;
 }
+void CMP2_CallBack(void){
+    if (InitFlug == 1) {
+        SingleShotTriggered = 0;
+
+                LED1 = 1;
+                /* Capture two waves */
+                DMACH0bits.TRMODE = 0b10;   // Continuous
+                DMACH1bits.TRMODE = 0b10;   // Continuous
+                DMACNT0 += LCD_WIDTH;  // DMA Counter
+                DMACNT1 += LCD_WIDTH;  // DMA Counter
+//                ADCON1bits.ADON = 1;    // ADC Enable
+//                TMR2 = 0;               // reset Timer2
+//                ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
+//                T2CONbits.TON = 1;		// start Timer2 = start ADC
+                IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
+                IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
+                IEC0bits.DMA0IE = true; // DMA Interrupt Disable/Enable
+                IEC0bits.DMA1IE = true; // DMA Interrupt Disable/Enable
+                DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
+                DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
+
+        SingleShotTriggered = 1;
+    }
+    // Clearing IF flag before enabling the interrupt.
+    IFS1bits.CMIF = 0;
+    // Disabling/Enabling CMP2 interrupt.
+    IEC1bits.CMIE = 0;//1;
+    return;
+}
+void __attribute__ ( ( interrupt, no_auto_psv ) ) _DMA0Interrupt(void){
+    DMACNT0_Copy = DMACNT0;
+    IFS0bits.DMA0IF = 0;	// Clear DMA0 Interrupt Flag
+    DMACH0bits.CHEN = 0;    // DMA0 Channel Disable & Stop
+    IEC0bits.DMA0IE = false; // DMA Interrupt Disable/Enable
+    waveform_is_captured++;
+    return;
+}
+void __attribute__ ( ( interrupt, no_auto_psv ) ) _DMA1Interrupt(void){
+    DMACNT1_Copy = DMACNT1;
+    IFS0bits.DMA1IF = 0;	// Clear DMA1 Interrupt Flag
+    DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
+    IEC0bits.DMA1IE = false; // DMA Interrupt Disable/Enable
+    waveform_is_captured++;
+    return;
+}
 /*
                          Main application
  */
@@ -644,12 +704,16 @@ int main(void)
     int prev_SWREValue = 0;
     int SelectedCH = 1; int prevSelectedCH = 1; 
     int OperationMode = 1; int prevOperationMode = 1;
-    int SingleShotTriggered = 0;  //0:waiting for a trigger, 1:Triggered
     
     // initialize the device
     DSCON = 0x0000; // must clear RELEASE bit after Deep Sleep
     DSCON = 0x0000; // must be write same command twice
     SYSTEM_Initialize();
+    // Clearing IF flag before enabling the interrupt.
+    IFS1bits.CMIF = 0;
+    // Disabling/Enabling CMP2 interrupt.
+    IEC1bits.CMIE = 0;//1;
+
     TMR5_SetInterruptHandler(TMR5_int);
     GLCD_Init();
     GLCD_Clear(0);
@@ -693,6 +757,7 @@ int main(void)
 	DMAINT0bits.CHSEL = 0x2F;           // Select Pipeline ADC
 	DMACH0bits.CHEN = 0;                // Channel DisableEnable
 	IFS0bits.DMA0IF = 0;                // Flag Reset
+    IPC1bits.DMA0IP = 7;                // 7: Highest Priority
 
     // DMA CH1 Setting
 	DMACH1 = 0;                         // Stop Channel
@@ -708,6 +773,7 @@ int main(void)
 	DMAINT1bits.CHSEL = 0x2F;           // Select Pipeline ADC
 	DMACH1bits.CHEN = 0;                // Channel DisableEnable
 	IFS0bits.DMA1IF = 0;                // Flag Reset
+    IPC3bits.DMA1IP = 7;                // 7: Highest Priority
 
     T2CONbits.TON = 0;                  // stop Timer2
 
@@ -717,55 +783,31 @@ int main(void)
 
     /* UART */
     printf("SYSTEM Initialized\n");
-    
+
+             /* Capture two waves */
+                ADCON1bits.ADON = 1;    // ADC Enable
+                TMR2 = 0;               // reset Timer2
+                ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
+                T2CONbits.TON = 1;		// start Timer2 = start ADC
+                IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
+                IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
+                IEC0bits.DMA0IE = true; // DMA Interrupt Disable/Enable
+                IEC0bits.DMA1IE = true; // DMA Interrupt Disable/Enable
+                DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
+                DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
+                
     /* Change Sampling frequency by Rotary Encoder */
     rotVal = (float) TimeAxisTableIndex;
     rotValMag = 0.2;
     prev_rotVal = rotVal;
+    waveform_is_captured = 0;
 
     while (1)
     {
         // Add your application code
-        if (SingleShotTriggered == 0){
-            LED1 = 1;
-            /* Capture two waves */
-            IEC1bits.T5IE = false;  // disable TMR5 interrupt; stop detection of the rotary encoder
-            ADCON1bits.ADON = 1;    // ADC Enable
-            TMR2 = 0;               // reset Timer2
-            ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
-            T2CONbits.TON = 1;		// start Timer2 = start ADC
-            IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
-            IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
-            DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
-            DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
-            while( ( !IFS0bits.DMA0IF ) | ( !IFS0bits.DMA1IF ) );	// Wait Max_Size sampling
-            IFS0bits.DMA0IF = 0;	// Clear DMA0 Interrupt Flag
-            IFS0bits.DMA1IF = 0;	// Clear DMA1 Interrupt Flag
-            DMACH0bits.CHEN = 0;    // DMA0 Channel Disable & Stop
-            DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
-            IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
-            LED1 = 0;
-        }
-        
-        //t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, TriggerPolarity[SelectedCH-1], 1);
-        t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, TriggerModeEdgeTable[TriggerMode[SelectedCH-1]], 1); // for test 0=Auto
-        DispScale();    // Display Scale
-        if (SelectedCH < 3) DispTRG(TriggerPosition[SelectedCH-1], VoltageAxisTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]], VoltagePos[SelectedCH-1], TriggerLevel[SelectedCH-1], 0, ColorWhite);
-        if ((t != 0)&&(SingleShotTriggered==0)) {
-
-            DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], VoltagePos[0], t, ColorCyan);  // display CH1 wave
-            DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltagePos[1], t, ColorOrange);   // display CH2 wave
-            if ((TriggerMode[SelectedCH-1] == 3) || (TriggerMode[SelectedCH-1] == 4)){  // Single shot
-                SingleShotTriggered = 1;
-                GLCD_ClearCharacterArea();
-                sprintf(pString,"Triggered !          ");
-                GLCD_DrawString(0, 0, pString, ColorWhite);
-            }
-        }
 
         if ( SW1Value > 0){     // when SW1 clicked
             SelectedCH = 1;
-            SingleShotTriggered = 0;
             LEDRotaryEncoderBlue =1;Nop();
             LEDRotaryEncoderOrange=0;
             while ( SW1Value != 0 ){    // Wait SWx released
@@ -781,7 +823,6 @@ int main(void)
         } 
         if ( SW2Value > 0){     // when SW2 clicked
             SelectedCH = 2;
-            SingleShotTriggered = 0;
             LEDRotaryEncoderOrange=1;Nop();
             LEDRotaryEncoderBlue=0;
             while ( SW2Value != 0 ){    // Wait SWx released
@@ -796,19 +837,90 @@ int main(void)
             }
         }
         if ( SW3Value > 0){     // when SW3 clicked
-            SelectedCH = 3; 
-            SingleShotTriggered = 0;
+            SelectedCH = 3;
             LEDRotaryEncoderOrange=1;Nop();
             LEDRotaryEncoderBlue=1;
-            while ( SW3Value != 0 ){}   // Wait SW3 released
+            while ( SW3Value != 0 ){    // Wait SWx released
+                if ( SW3Value > 400 ){  // when pressed for 2 seconds or more
+                    OperationMode = 4;  // TRG setting mode
+                    break;              // SWxValue = 401
+                }
+            }
         }
         if ( SW4Value > 0){     // when SW4 clicked
             if ((TriggerMode[SelectedCH-1] == 3) | (TriggerMode[SelectedCH-1] == 4)){  // Single shot
                 OperationMode = 8;
                 SingleShotTriggered = 0;
+                
+                InitFlug = 1;
+                CM2CONbits.CEVT = 0;    //Reset Event Status 
+                IFS1bits.CMIF = 0;  // Clearing IF flag before enabling the interrupt.
+                IEC1bits.CMIE = 1;  // Disabling/Enabling CMP2 interrupt.
+                CM2CONbits.CON = 1; //CM2 enable
+
                 GLCD_ClearCharacterArea();
                 sprintf(pString,"Waiting for a trigger");
                 GLCD_DrawString(0, 0, pString, ColorWhite);
+
+                LED1 = 1;
+                IEC0bits.DMA0IE = false; // DMA Interrupt Disable/Enable
+                IEC0bits.DMA1IE = false; // DMA Interrupt Disable/Enable
+                IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
+                IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
+
+    /*** DMA Setting ****/
+    DMACON = 0;
+	DMACONbits.DMAEN = 1;               // DMA Enable
+	DMACONbits.PRSSEL = 1;              // 0: Fixed Priority, 1: Round-robin
+	DMAH = 8192;                        // Upper Limit 8k byte
+	DMAL = 0x0800;                      // Lower Limit Excluding SFR Space
+    
+    // DMA CH0 Setting
+	DMACH0 = 0;                         // Stop Channel
+	DMACH0bits.RELOAD = 1;              // Reload DMASRC, DMADST, DMACNT
+	DMACH0bits.TRMODE = 0b11;           // Repeated Continuous    
+	DMACH0bits.SAMODE = 0b00;              // Source Addrs 0b11:PIA mode --0b00:No Increment--
+	DMACH0bits.DAMODE = 1;              // Dist Addrs Increment
+	DMACH0bits.SIZE = 0;                // Word Mode(16bit)
+	DMASRC0 = (unsigned int)&ADRES0;    // From ADC Buf0 select
+	DMADST0 = (unsigned int)originalWavedata[0];  // To Buffer select
+	DMACNT0 = LCD_WIDTH*2;                      // DMA Counter
+	DMAINT0 = 0;                        // All Clear
+	DMAINT0bits.CHSEL = 0x2F;           // Select Pipeline ADC
+	DMACH0bits.CHEN = 0;                // Channel DisableEnable
+	IFS0bits.DMA0IF = 0;                // Flag Reset
+    IPC1bits.DMA0IP = 7;                // 7: Highest Priority
+
+    // DMA CH1 Setting
+	DMACH1 = 0;                         // Stop Channel
+	DMACH1bits.RELOAD = 1;              // Reload DMASRC, DMADST, DMACNT
+	DMACH1bits.TRMODE = 0b11;           // Repeated Continuous    
+	DMACH1bits.SAMODE = 0b00;              // Source Addrs 0b11:PIA mode --0b00:No Increment--
+	DMACH1bits.DAMODE = 1;              // Dist Addrs Increment
+	DMACH1bits.SIZE = 0;                // Word Mode(16bit)
+	DMASRC1 = (unsigned int)&ADRES1;    // From ADC Buf0 select
+	DMADST1 = (unsigned int)originalWavedata[1];  // To Buffer select
+	DMACNT1 = LCD_WIDTH*2;                      // DMA Counter
+	DMAINT1 = 0;                        // All Clear
+	DMAINT1bits.CHSEL = 0x2F;           // Select Pipeline ADC
+	DMACH1bits.CHEN = 0;                // Channel DisableEnable
+	IFS0bits.DMA1IF = 0;                // Flag Reset
+    IPC3bits.DMA1IP = 7;                // 7: Highest Priority
+
+    T2CONbits.TON = 0;                  // stop Timer2
+
+                /* Capture two waves */
+                ADCON1bits.ADON = 1;    // ADC Enable
+                TMR2 = 0;               // reset Timer2
+                ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
+                T2CONbits.TON = 1;		// start Timer2 = start ADC
+                IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
+                IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
+                //IEC0bits.DMA0IE = true; // DMA Interrupt Disable/Enable
+                //IEC0bits.DMA1IE = true; // DMA Interrupt Disable/Enable
+                DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
+                DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
+                
             }
             while ( SW4Value != 0 ){
                 if ( SW4Value > 400 ){  // Press for 2 seconds
@@ -822,7 +934,7 @@ int main(void)
         }
         prevSelectedCH = SelectedCH;
         
-        if (SelectedCH < 3) switch( OperationMode ){
+        if (SelectedCH <= 3) switch( OperationMode ){
             case 1:{    // Select Time Axis
                 if ( OperationMode != prevOperationMode ){
                     /* Change Sampling frequency by Rotary Encoder */
@@ -889,6 +1001,7 @@ int main(void)
             case 4:{    // Set Trigger Mode
                 if ( OperationMode != prevOperationMode ){
                     /* Change TRG MODE by Rotary Encoder */
+                    SingleShotTriggered = 0;
                     rotVal = (float)TriggerMode[SelectedCH-1];
                     rotValMag = 0.2;
                     prev_rotVal = rotVal;
@@ -899,12 +1012,26 @@ int main(void)
                 }
                 if(prev_rotVal != rotVal){
                     GLCD_ClearCharacterArea();
-                    if (rotVal < 0) rotVal = 0;
+                    if (SelectedCH < 3){
+                        if (rotVal < 0) rotVal = 0;     //CH1 and 2 has Auto-Trigger-mode
+                    } else if (rotVal < 1) rotVal = 1;  //CH3 have no Auto-Trigger-mode
                     if (rotVal > 4) rotVal = 4;
                     TriggerMode[SelectedCH-1] = (int)rotVal;
                     sprintf(pString,"TRG CH%1d ", SelectedCH);
                     GLCD_DrawString(0, 0, pString, ColorWhite);
                     GLCD_DrawString(96, 0, TriggerModeTable[(int)rotVal], ColorWhite);
+                    if(SelectedCH == 3){
+                        switch (TriggerModeEdgeTable[TriggerMode[SelectedCH-1]]){
+                            case 1:{
+                                CM2CONbits.EVPOL = 0b10;    //Int High-->Low
+                                break;
+                            }
+                            case -1:{
+                                CM2CONbits.EVPOL = 0b01;    //Int Low-->High
+                                break;
+                            }
+                        }
+                    }
                 }
                 // push center button of Rotary Encoder
                 if (prev_SWREValue != SWREValue){
@@ -912,10 +1039,9 @@ int main(void)
                     // set Trigger Level to rotVal
                     rotVal = (float)TriggerLevel[SelectedCH-1];
                     rotValMag = 0.2;
-                    prev_rotVal = rotVal;
-                    //GLCD_ClearCharacterArea();
+                    //prev_rotVal = rotVal;
                     sprintf(pString,"L%d", (int)rotVal);
-                    GLCD_DrawString(220, 0, pString, ColorWhite);                    
+                    GLCD_DrawString(220, 0, pString, ColorWhite);              
                 }
                 prev_SWREValue = SWREValue;
                 prev_rotVal = rotVal;
@@ -926,14 +1052,22 @@ int main(void)
                 sprintf(pString,"L%d", (int)prev_rotVal);
                 GLCD_DrawString(220, 0, pString, ColorBlack);                    
                 sprintf(pString,"L%d", (int)rotVal);
-                GLCD_DrawString(220, 0, pString, ColorWhite);                    
+                GLCD_DrawString(220, 0, pString, ColorWhite);
+                if(SelectedCH == 3){
+                    if (rotVal < 0) rotVal = 0;
+                    if (rotVal > 0x01f ) rotVal = 0x1f;
+                    CVRCONbits.CVR = (int)rotVal;
+                }
                 prev_rotVal = rotVal;
                 TriggerLevel[SelectedCH-1] = (int)rotVal;
                 break;
             }
             case 7:{    // Auto cancel AMP Offset
                 GLCD_ClearCharacterArea();
-                if (SWREValue > 100){
+                if ( OperationMode != prevOperationMode ){
+                    sprintf(pString,"Current Amp Offset %d", TriggerLevel[SelectedCH-1]);
+                    GLCD_DrawString(0, 0, pString, ColorWhite);
+                } else {
                     switch (VoltageAxisTableIndex[SelectedCH-1]){
                         case 0:
                         case 1:
@@ -959,9 +1093,6 @@ int main(void)
                     GLCD_DrawString(0, 0, pString, ColorWhite);
                     OperationMode = 3;
                     SWREValue = 0;
-                } else {
-                    sprintf(pString,"Current Amp Offset %d", TriggerLevel[SelectedCH-1]);
-                    GLCD_DrawString(0, 0, pString, ColorWhite);
                 }
                 break;
             }
@@ -969,10 +1100,74 @@ int main(void)
                 if ( OperationMode != prevOperationMode ){
 
                 }
+                Nop();
                 break;
             }
         }
         prevOperationMode = OperationMode;
+        
+        
+        
+        if (waveform_is_captured==2){
+            LED1 = 0;
+            if (SelectedCH < 3) {
+                t = DetectEdge(SelectedCH, TriggerPosition[SelectedCH-1], TriggerLevel[SelectedCH-1], 1, TriggerModeEdgeTable[TriggerMode[SelectedCH-1]], 1); // for test 0=Auto
+                DispTRG(TriggerPosition[SelectedCH-1], VoltageAxisTable[SelectedCH-1][VoltageAxisTableIndex[SelectedCH-1]], VoltagePos[SelectedCH-1], TriggerLevel[SelectedCH-1], 0, ColorWhite);
+                DispScale();    // Display Scale
+                if ((t != 0)||(SingleShotTriggered==1)) {
+                    DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], VoltagePos[0], t, ColorCyan);  // display CH1 wave
+                    DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltagePos[1], t, ColorOrange);   // display CH2 wave
+                    if (((TriggerMode[SelectedCH-1] == 3) || (TriggerMode[SelectedCH-1] == 4))&&(SingleShotTriggered==0)){  // Single shot
+                        SingleShotTriggered = 1;
+                        GLCD_ClearCharacterArea();
+                        sprintf(pString,"Triggered !          ");
+                        GLCD_DrawString(0, 0, pString, ColorWhite);
+                    }
+                }
+            } else {
+                if (SingleShotTriggered == 1){
+                    if ( DMACNT0_Copy < LCD_WIDTH ){
+                        
+                    }
+                    DispWave(0, VoltageAxisTable[0][VoltageAxisTableIndex[0]], VoltagePos[0], t, ColorCyan);  // display CH1 wave
+                    DispWave(1, VoltageAxisTable[1][VoltageAxisTableIndex[1]], VoltagePos[1], t, ColorOrange);   // display CH2 wave
+                    GLCD_ClearCharacterArea();
+                    sprintf(pString,"Triggered !          ");
+                    GLCD_DrawString(0, 0, pString, ColorWhite);
+                }
+            }
+
+
+            if ((SingleShotTriggered == 0) && (SelectedCH < 3)){
+                //IEC1bits.T5IE = false;  // disable TMR5 interrupt; stop detection of the rotary encoder
+                LED1 = 1;
+
+             /* Capture two waves */
+                ADCON1bits.ADON = 1;    // ADC Enable
+                TMR2 = 0;               // reset Timer2
+                ADSTATLbits.SL0IF = 0;  // ADC Flag Clear
+                T2CONbits.TON = 1;		// start Timer2 = start ADC
+                IFS0bits.DMA0IF = 0;    // DMA0 Interrupt Flag Reset
+                IFS0bits.DMA1IF = 0;    // DMA1 Interrupt Flag Reset
+                IEC0bits.DMA0IE = true; // DMA Interrupt Disable/Enable
+                IEC0bits.DMA1IE = true; // DMA Interrupt Disable/Enable
+                DMACH0bits.CHEN = 1;    // DMA0 Channel Enable & Start
+                DMACH1bits.CHEN = 1;    // DMA1 Channel Enable & Start
+                /*
+                 * Int
+                 */
+    //            while( ( !IFS0bits.DMA0IF ) | ( !IFS0bits.DMA1IF ) );	// Wait Max_Size sampling
+    //            IFS0bits.DMA0IF = 0;	// Clear DMA0 Interrupt Flag
+    //            IFS0bits.DMA1IF = 0;	// Clear DMA1 Interrupt Flag
+    //            DMACH0bits.CHEN = 0;    // DMA0 Channel Disable & Stop
+    //            DMACH1bits.CHEN = 0;    // DMA1 Channel Disable & Stop
+    //            LED1 = 0;
+
+                //IEC1bits.T5IE = true;   // enable TMR5 interrupt; start detection of the rotary encoder
+            }
+            waveform_is_captured = 0;
+        }
+
     }
 
     return 1;

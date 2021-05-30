@@ -1,18 +1,18 @@
-/**
-  System Interrupts Generated Driver File 
 
-  @Company:
+/**
+  CMP2 Generated Driver File 
+
+  @Company
     Microchip Technology Inc.
 
-  @File Name:
-    interrupt_manager.h
+  @File Name
+    cmp2.c
 
-  @Summary:
-    This is the generated driver implementation file for setting up the
-    interrupts using PIC24 / dsPIC33 / PIC32MM MCUs
+  @Summary
+    This is the generated driver implementation file for the CMP2 driver using PIC24 / dsPIC33 / PIC32MM MCUs
 
-  @Description:
-    This source file provides implementations for PIC24 / dsPIC33 / PIC32MM MCUs interrupts.
+  @Description
+    This header file provides implementations for driver APIs for CMP2. 
     Generation Information : 
         Product Revision  :  PIC24 / dsPIC33 / PIC32MM MCUs - 1.169.0
         Device            :  PIC24FJ64GC006
@@ -20,6 +20,7 @@
         Compiler          :  XC16 v1.50
         MPLAB             :  MPLAB X v5.40
 */
+
 /*
     (c) 2020 Microchip Technology Inc. and its subsidiaries. You may use this
     software and any derivatives exclusively with Microchip products.
@@ -43,32 +44,62 @@
 */
 
 /**
-    Section: Includes
+  Section: Included Files
 */
-#include <xc.h>
+
+#include "cmp2.h"
 
 /**
-    void INTERRUPT_Initialize (void)
+  Section: Driver Interface
 */
-void INTERRUPT_Initialize (void)
-{
-    //    UERI: U1E - UART1 Error
-    //    Priority: 2
-        IPC16bits.U1ERIP = 2;
-    //    UTXI: U1TX - UART1 Transmitter
-    //    Priority: 2
-        IPC3bits.U1TXIP = 2;
-    //    URXI: U1RX - UART1 Receiver
-    //    Priority: 2
-        IPC2bits.U1RXIP = 2;
-    //    CMI: Comp - Comparator
-    //    Priority: 1
-        IPC4bits.CMIP = 1;
-    //    INT0I: INT0 - External Interrupt 0
-    //    Priority: 2
-        IPC0bits.INT0IP = 2;
-    //    TI: T5 - Timer5
-    //    Priority: 2
-        IPC7bits.T5IP = 2;
 
+void CMP2_Initialize(void)
+{   
+    IEC1bits.CMIE = 0;
+    
+    // CMIDL disabled; 
+    CMSTAT = 0x00;
+    // CON enabled; CPOL Not Inverted; EVPOL Any Change; COE disabled; CCH C2INB; CREF CVREF; CEVT disabled; 
+    CM2CON = 0x80D0 & ~(0x8000);
+    
+    // Clearing IF flag before enabling the interrupt.
+    IFS1bits.CMIF = 0;
+    // Enabling CMP2 interrupt.
+    IEC1bits.CMIE = 1;
+
+    CMP2_Enable();
 }
+
+bool CMP2_OutputStatusGet(void)
+{
+    return (CM2CONbits.COUT);
+}
+bool CMP2_EventStatusGet(void)
+{   
+    return (CM2CONbits.CEVT);      
+}
+void CMP2_EventStatusReset(void)
+{
+    CM2CONbits.CEVT = 0;
+}
+
+void __attribute__ ((weak)) CMP2_CallBack(void)
+{
+    // Add your custom callback code here
+}
+
+void __attribute__ ( ( interrupt, no_auto_psv ) ) _CompInterrupt(void)
+{
+    // CMP2 callback function 
+    CMP2_CallBack();
+
+    // Clear the CEVT bit to enable further interrupts
+    CMP2_EventStatusReset();
+	
+    // clear the CMP2 interrupt flag
+    IFS1bits.CMIF = 0;
+}
+
+/**
+  End of File
+*/

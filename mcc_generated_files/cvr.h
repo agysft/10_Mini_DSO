@@ -1,25 +1,26 @@
-/**
-  System Interrupts Generated Driver File 
 
-  @Company:
+/**
+  CVR Generated Driver API Header File
+
+  @Company
     Microchip Technology Inc.
 
-  @File Name:
-    interrupt_manager.h
+  @File Name
+    cvr.h
 
-  @Summary:
-    This is the generated driver implementation file for setting up the
-    interrupts using PIC24 / dsPIC33 / PIC32MM MCUs
+  @Summary
+    This is the generated header file for the CVR driver using PIC24 / dsPIC33 / PIC32MM MCUs
 
-  @Description:
-    This source file provides implementations for PIC24 / dsPIC33 / PIC32MM MCUs interrupts.
-    Generation Information : 
+  @Description
+    This header file provides APIs for driver for CVR.
+    Generation Information :
         Product Revision  :  PIC24 / dsPIC33 / PIC32MM MCUs - 1.169.0
         Device            :  PIC24FJ64GC006
     The generated drivers are tested against the following:
         Compiler          :  XC16 v1.50
-        MPLAB             :  MPLAB X v5.40
+        MPLAB 	          :  MPLAB X v5.40
 */
+
 /*
     (c) 2020 Microchip Technology Inc. and its subsidiaries. You may use this
     software and any derivatives exclusively with Microchip products.
@@ -42,33 +43,53 @@
     TERMS.
 */
 
+#ifndef _CVR_H
+#define _CVR_H
+
 /**
-    Section: Includes
+  Section: Included Files
 */
+
 #include <xc.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    extern "C" {
+
+#endif
+
 
 /**
-    void INTERRUPT_Initialize (void)
-*/
-void INTERRUPT_Initialize (void)
-{
-    //    UERI: U1E - UART1 Error
-    //    Priority: 2
-        IPC16bits.U1ERIP = 2;
-    //    UTXI: U1TX - UART1 Transmitter
-    //    Priority: 2
-        IPC3bits.U1TXIP = 2;
-    //    URXI: U1RX - UART1 Receiver
-    //    Priority: 2
-        IPC2bits.U1RXIP = 2;
-    //    CMI: Comp - Comparator
-    //    Priority: 1
-        IPC4bits.CMIP = 1;
-    //    INT0I: INT0 - External Interrupt 0
-    //    Priority: 2
-        IPC0bits.INT0IP = 2;
-    //    TI: T5 - Timer5
-    //    Priority: 2
-        IPC7bits.T5IP = 2;
+  @Summary
+    This function initializes CVR 
 
-}
+  @Description
+    This routine initializes the CVR driver index, making it 
+    ready for clients to open and use it. It also initializes any internal data 
+    structures.
+
+  @Param
+    None.
+
+  @Returns 
+    None
+ 
+  @Comment
+
+*/
+void CVR_Initialize(void);
+        
+#ifdef __cplusplus  // Provide C++ Compatibility
+
+    }
+
+#endif 
+    
+#endif //_CVR_H    
+
+/**
+  End of File
+*/

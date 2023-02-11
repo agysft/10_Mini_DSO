@@ -109,10 +109,17 @@ int SWREValue = 0, SW1Value = 0, SW2Value = 0, SW3Value = 0, SW4Value = 0;
      *  2ms/div     499     0x1F3
      *  5ms/div     1249	0x4E1
      *  10ms/div	2499	0x9C3
+     *  20ms/div    4999
+     *  50ms/div    12499
+     *  100ms/div   24999
      */
-uint8_t TimeAxisTableIndex = 5;
-uint16_t TimeAxisTable[]={0x9c3, 0x4e1, 0x1f3, 0xf9, 0x7c, 0x31, 0x18, 9, 4, 3};
-char TimeAxisTable_s[10][11]={
+#define TimeAxisTableNumberOfItems  13
+uint8_t TimeAxisTableIndex = 8;
+uint16_t TimeAxisTable[]={24999, 12499, 4999, 0x9c3, 0x4e1, 0x1f3, 0xf9, 0x7c, 0x31, 0x18, 9, 4, 3};
+char TimeAxisTable_s[TimeAxisTableNumberOfItems][11]={
+    "100ms/div\0",
+    " 50ms/div\0",
+    " 20ms/div\0",
     " 10ms/div\0",
     "  5ms/div\0",
     "  2ms/div\0",
@@ -946,7 +953,7 @@ int main(void)
                 if(prev_rotVal != rotVal){
                     GLCD_ClearCharacterArea();
                     if (rotVal < 0) rotVal = 0;
-                    if (rotVal > 9) rotVal = 9;
+                    if (rotVal > TimeAxisTableNumberOfItems-1) rotVal = TimeAxisTableNumberOfItems-1;
                     TimeAxisTableIndex = (int)rotVal;
                     PR2 = TimeAxisTable[TimeAxisTableIndex];
                 }

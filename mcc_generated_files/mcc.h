@@ -51,17 +51,17 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "cvr.h"
-#include "tmr5.h"
-#include "tmr2.h"
-#include "uart1.h"
-#include "spi1.h"
-#include "oc1.h"
 #include "padc1.h"
-#include "cmp2.h"
-#include "ext_int.h"
+#include "uart1.h"
+#include "oc1.h"
+#include "spi1.h"
 #include "interrupt_manager.h"
 #include "traps.h"
+#include "tmr2.h"
+#include "tmr5.h"
+#include "cmp2.h"
+#include "ext_int.h"
+#include "cvr.h"
 
 #warning "This file will be removed in future MCC releases. Use system.h instead."
 
